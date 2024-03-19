@@ -43,10 +43,14 @@ public class DBServer {
     * <p>This method handles all incoming DB commands and carries out the required actions.
     */
     public String handleCommand(String command) {
-        Parser parser = new Parser();
-        List<String> tokens = parser.parseCommand(command);
-        // TODO implement your server logic here
-        return "";
+        try {
+            Parser parser = new Parser();
+            List<String> tokens = parser.parseCommand(command);
+            // TODO implement your server logic here
+            return "";
+        }catch(ParserException e){
+            return "[ERROR] "+ e.getMessage();
+        }
     }
 
     //  === Methods below handle networking aspects of the project - you will not need to change these ! ===
