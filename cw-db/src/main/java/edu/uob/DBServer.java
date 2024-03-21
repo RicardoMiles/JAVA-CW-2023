@@ -6,9 +6,9 @@ import java.net.Socket;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.List;/*后加*/
-import java.util.Map;/*后加*/
-import java.util.HashMap;/*后加*/
+import java.util.List;/*Addition*/
+import java.util.Map;/*Addition*/
+import java.util.HashMap;/*Addition*/
 
 /** This class implements the DB server. */
 public class DBServer {
@@ -35,6 +35,7 @@ public class DBServer {
             Files.createDirectories(Paths.get(storageFolderPath));
 
             //遍历数据文件地址，读取数据到内存中
+            //Traverse the data file addresses and read data into memory
             File storageFolder = new File(storageFolderPath);
             File[] files = storageFolder.listFiles();
             if (files != null) {
@@ -67,7 +68,7 @@ public class DBServer {
     public String handleCommand(String command) {
         try {
             if (!hasText(command)) {
-                return "ERROR: No command entered";
+                return "[ERROR]: No command entered";
             }
             List<String> parserList = Parser.setup(command);
 
@@ -80,7 +81,7 @@ public class DBServer {
             switch (action) {
                 case "DROP":
                     if (parserList.size() < 3) {
-                        return "ERROR: sql语句错误";
+                        return "[ERROR]: sql syntax error";
                     }
                     type = parserList.get(1).toUpperCase();
                     switch (type) {
@@ -94,12 +95,12 @@ public class DBServer {
                             dropTable(tableName);
                             break;
                         default:
-                            return "ERROR: sql语句错误";
+                            return "[ERROR]: sql syntax error";
                     }
                     break;
                 case "CREATE":
                     if (parserList.size() < 3) {
-                        return "ERROR: sql语句错误";
+                        return "[ERROR]: sql syntax error";
                     }
                     type = parserList.get(1).toUpperCase();
                     switch (type) {
@@ -121,7 +122,7 @@ public class DBServer {
                             createTable(tableName, columnNameList);
                             break;
                         default:
-                            throw new RuntimeException("sql语句错误");
+                            throw new RuntimeException("sql syntax error");
                     }
                     break;
                 case "USE":
@@ -223,7 +224,7 @@ public class DBServer {
                     }
 
                     if (attributesList.isEmpty()) {
-                        throw new RuntimeException("sql 语句错误");
+                        throw new RuntimeException("sql syntax error");
                     }
 
                     conditionsMap = getConditionsMap(4, parserList);
@@ -249,7 +250,7 @@ public class DBServer {
 
     private void use(String name) {
         if (DATABASE_LIST.isEmpty()) {
-            throw new RuntimeException("未创建数据库");
+            throw new RuntimeException("Database not created");
         } else {
             for (Database database : DATABASE_LIST) {
                 String databaseName = database.getName();
@@ -259,7 +260,7 @@ public class DBServer {
                 }
             }
             if (currentDatabase == null) {
-                throw new RuntimeException("未找到数据库");
+                throw new RuntimeException("Database not found");
             }
         }
     }
@@ -284,14 +285,14 @@ public class DBServer {
             for (Database database : DATABASE_LIST) {
                 String databaseName = database.getName();
                 if (name.equals(databaseName)) {
-                    throw new RuntimeException("数据库已存在");
+                    throw new RuntimeException("Database already exists");
                 }
             }
         }
         //创建数据库
         File file = Paths.get("databases" + File.separator + name).toAbsolutePath().toFile();
         if (!file.mkdirs()) {
-            throw new RuntimeException("数据库创建失败");
+            throw new RuntimeException("Database creation failed");
         }
         Database database = new Database(name);
         DATABASE_LIST.add(database);
@@ -309,12 +310,12 @@ public class DBServer {
             }
         }
         if (currentDatabase == null) {
-            throw new RuntimeException("未找到数据库");
+            throw new RuntimeException("Database not found");
         }
         //创建数据库
         File databaseFile = Paths.get("databases" + File.separator + name).toAbsolutePath().toFile();
         if (!Util.deleteFile(databaseFile)) {
-            throw new RuntimeException("删除数据库失败");
+            throw new RuntimeException("Database deletion failed");
         }
 
         DATABASE_LIST.remove(currentDatabase);
@@ -322,14 +323,14 @@ public class DBServer {
 
     private static void createTable(String name, List<String> columnNameList) {
         if (currentDatabase == null) {
-            throw new RuntimeException("先选择数据库");
+            throw new RuntimeException("Database not selected prior");
         }
         List<Table> tableList = currentDatabase.getTableList();
         if (!tableList.isEmpty()) {
             for (Table table : tableList) {
                 String tableName = table.getName();
                 if (tableName.equals(name)) {
-                    throw new RuntimeException("表已存在");
+                    throw new RuntimeException("Table already exists");
                 }
             }
         }
@@ -340,15 +341,15 @@ public class DBServer {
 
         if (file.exists()) {
             if (file.delete()) {
-                throw new RuntimeException("表创建失败");
+                throw new RuntimeException("Table creation failed");
             }
         }
         try {
             if (!file.createNewFile()) {
-                throw new RuntimeException("表创建失败");
+                throw new RuntimeException("Table creation failed");
             }
         } catch (Exception e) {
-            throw new RuntimeException("表创建失败");
+            throw new RuntimeException("Table creation failed");
         }
 
         try (FileWriter fw = new FileWriter(file)) {
@@ -362,7 +363,7 @@ public class DBServer {
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("表创建失败");
+            throw new RuntimeException("Table creation failed");
         }
         Table table = new Table(name);
         table.setColumnNameList(columnNameList);
@@ -380,7 +381,7 @@ public class DBServer {
      */
     private static void dropTable(String name) {
         if (currentDatabase == null) {
-            throw new RuntimeException("先选择数据库");
+            throw new RuntimeException("Database not selected prior");
         }
         Table currentTable = null;
         List<Table> tableList = currentDatabase.getTableList();
@@ -394,7 +395,7 @@ public class DBServer {
             }
         }
         if (currentTable == null) {
-            throw new RuntimeException("未找到数据库表");
+            throw new RuntimeException("Table not found");
         }
 
         File table = Paths.get("databases" + File.separator + currentDatabase.getName() +
@@ -402,7 +403,7 @@ public class DBServer {
 
         //删除表文件
         if (!Util.deleteFile(table)) {
-            throw new RuntimeException("删除表失败");
+            throw new RuntimeException("Table deletion failed");
         }
         //更新内存信息
         tableList.remove(currentTable);
@@ -418,11 +419,11 @@ public class DBServer {
      */
     private static void insert(String tableName, List<String> valueList) {
         if (currentDatabase == null) {
-            throw new RuntimeException("未选中数据库");
+            throw new RuntimeException("Database not selected");
         }
         List<Table> tableList = currentDatabase.getTableList();
         if (tableList == null || tableList.isEmpty()) {
-            throw new RuntimeException("未找到数据表");
+            throw new RuntimeException("Database not found");
         }
 
         Table currentTable = null;
@@ -437,7 +438,7 @@ public class DBServer {
         }
 
         if (currentTable == null) {
-            throw new RuntimeException("未找到数据表");
+            throw new RuntimeException("Database not found");
         }
 
         //插入行的id索引
@@ -476,11 +477,11 @@ public class DBServer {
      */
     private static String select(String tableName, List<String> attributeList, Map<String, List<String>> conditionsMap) {
         if (currentDatabase == null) {
-            throw new RuntimeException("未选择数据库");
+            throw new RuntimeException("Database not selected");
         }
         Table table = currentDatabase.getTable(tableName);
         if (table == null) {
-            throw new RuntimeException("未找到数据表");
+            throw new RuntimeException("Database not found");
         }
 
         List<String> columnNameList = table.getColumnNameList();
@@ -589,11 +590,11 @@ public class DBServer {
      */
     private void delete(String tableName, Map<String, List<String>> conditionsMap) {
         if (currentDatabase == null) {
-            throw new RuntimeException("未选择数据库");
+            throw new RuntimeException("Database not selected");
         }
         Table table = currentDatabase.getTable(tableName);
         if (table == null) {
-            throw new RuntimeException("未找到数据表");
+            throw new RuntimeException("Database not found");
         }
 
         List<String> columnNameList = table.getColumnNameList();
@@ -667,11 +668,11 @@ public class DBServer {
      */
     private void update(String tableName, List<List<String>> attributesList, Map<String, List<String>> conditionsMap) {
         if (currentDatabase == null) {
-            throw new RuntimeException("未选择数据库");
+            throw new RuntimeException("Database not selected");
         }
         Table table = currentDatabase.getTable(tableName);
         if (table == null) {
-            throw new RuntimeException("未找到数据表");
+            throw new RuntimeException("Database not found");
         }
 
         List<String> columnNameList = table.getColumnNameList();
@@ -753,16 +754,16 @@ public class DBServer {
      */
     private void alter(String tableName, String actionType, String attribute) {
         if (currentDatabase == null) {
-            throw new RuntimeException("未选择数据库");
+            throw new RuntimeException("Database not selected");
         }
         Table table = currentDatabase.getTable(tableName);
         if (table == null) {
-            throw new RuntimeException("未找到数据表");
+            throw new RuntimeException("Table not found queries on non-existent tables");
         }
         if ("ADD".equalsIgnoreCase(actionType)) {
             List<String> columnNameList = table.getColumnNameList();
             if (columnNameList.contains(attribute)) {
-                throw new RuntimeException("属性已存在");
+                throw new RuntimeException("Attribute already exists");
             }
             columnNameList.add(attribute);
             table.setColumnNameList(columnNameList);
@@ -818,7 +819,7 @@ public class DBServer {
                 fw.flush();
             }
         } catch (IOException e) {
-            throw new RuntimeException("插入数据失败");
+            throw new RuntimeException("Insert data fail");
         }
     }
 
@@ -855,7 +856,7 @@ public class DBServer {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("插入数据失败");
+            throw new RuntimeException("Insert data fail");
         }
     }
 
@@ -890,7 +891,7 @@ public class DBServer {
                 }
                 if (conditions.size() == 3) {
                     if (conditionsMap.containsKey(key)) {
-                        throw new RuntimeException("sql 语句错误");
+                        throw new RuntimeException("sql syntax error");
                     }
                     conditionsMap.put(key, conditions);
                     conditions = new ArrayList<>();
