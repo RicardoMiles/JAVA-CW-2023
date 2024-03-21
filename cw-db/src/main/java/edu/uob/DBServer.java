@@ -6,8 +6,9 @@ import java.net.Socket;
 import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.List;/*随时删除*/
-import java.util.Map;/*随时删除*/
+import java.util.List;/*后加*/
+import java.util.Map;/*后加*/
+import java.util.HashMap;/*后加*/
 
 /** This class implements the DB server. */
 public class DBServer {
