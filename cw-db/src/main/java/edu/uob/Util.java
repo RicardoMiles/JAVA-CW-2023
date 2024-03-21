@@ -2,9 +2,7 @@ package edu.uob;
 
 import java.io.File;
 
-/**
- * @author force
- */
+
 public class Util {
 
     /**
@@ -27,5 +25,31 @@ public class Util {
         }
 
         return false;
+    }
+
+    /**
+     * 递归文件删除
+     *
+     * @param file 文件
+     * @return 是否删除成功
+     */
+    public static boolean deleteFile(File file) {
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                File[] files = file.listFiles();
+                if (files != null && files.length > 0) {
+                    for (File child : files) {
+                        if (child.isFile()) {
+                            return child.delete();
+                        } else if (file.isDirectory()) {
+                            return deleteFile(file);
+                        }
+                    }
+                } else {
+                    return file.delete();
+                }
+            }
+        }
+        return true;
     }
 }

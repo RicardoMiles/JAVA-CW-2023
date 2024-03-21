@@ -2,9 +2,7 @@ package edu.uob;
 
 import java.util.List;
 
-/**
- * @author force
- */
+
 public class Row {
     private final List<String> valueList;
 

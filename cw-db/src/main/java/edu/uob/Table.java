@@ -6,7 +6,6 @@ import java.util.List;
 /**
  * 数据库表类
  *
- * @author force
  */
 public class Table {
     /**
