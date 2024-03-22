@@ -6,11 +6,7 @@ import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 数据库类
- *
- * @author force
- */
+
 public class Database {
 
     /**
@@ -67,11 +63,11 @@ public class Database {
         Table table = new Table(tableName);
         try (FileReader fr = new FileReader(tableFile); BufferedReader br = new BufferedReader(fr)) {
             String line;
-            int index = 0;
+            int index = -1;
             List<String> columnNameList = new ArrayList<>();
             List<Row> rowList = new ArrayList<>();
             while ((line = br.readLine()) != null) {
-                if (index == 0) {
+                if (index == -1) {
                     //插入表的首行即列名
                     String[] split = line.split("\t");
                     for (String s : split) {
