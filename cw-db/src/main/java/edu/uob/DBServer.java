@@ -5,10 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;/*Addition*/
-import java.util.Map;/*Addition*/
-import java.util.HashMap;/*Addition*/
+import java.util.*;
 
 /** This class implements the DB server. */
 public class DBServer {
@@ -19,6 +16,8 @@ public class DBServer {
     /** DIY attributes*/
     private static final List<Database> DATABASE_LIST = new ArrayList<>();
     private static Database currentDatabase = null;
+
+    private final static List<String> RESERVED_WORD_LIST = Arrays.asList("TRUE", "FALSE", "AND", "OR", "LIKE");
 
     public static void main(String args[]) throws IOException {
         DBServer server = new DBServer();
@@ -74,6 +73,11 @@ public class DBServer {
 
             String action = parserList.get(0).toUpperCase();
 
+            String endStr = parserList.get(parserList.size() - 1);
+            if (!";".equalsIgnoreCase(endStr)) {
+                throw new RuntimeException("Semi colon missing at end of line");
+            }
+
             String databaseName;
             String tableName = null;
             Map<String, List<String>> conditionsMap;
@@ -107,15 +111,24 @@ public class DBServer {
                         case "DATABASE":
                             databaseName = parserList.get(2).toLowerCase();
                             createDatabase(databaseName);
+                            if (isReservedWords(databaseName)) {
+                                throw new RuntimeException("Use invalid element names reserved SQL keywords)");
+                            }
                             break;
                         case "TABLE":
                             //创建数据库表
                             tableName = parserList.get(2).toLowerCase();
+                            if (isReservedWords(tableName)) {
+                                throw new RuntimeException("Use invalid element names reserved SQL keywords)");
+                            }
                             List<String> columnNameList = new ArrayList<>();
                             columnNameList.add("id");
                             for (int i = 3; i < parserList.size(); i++) {
                                 String parser = parserList.get(i);
                                 if (!Parser.SPECIAL_CHARACTERS.contains(parser)) {
+                                    if (isReservedWords(tableName)) {
+                                        throw new RuntimeException("Use invalid element names reserved SQL keywords)");
+                                    }
                                     columnNameList.add(parser);
                                 }
                             }
@@ -191,6 +204,32 @@ public class DBServer {
                         sb.append(select);
                     }
                     return sb.toString();
+                case "JOIN":
+                    List<String> tableNameList = new ArrayList<>();
+                    tableNameList.add(parserList.get(1));
+                    tableNameList.add(parserList.get(3));
+                    List<String> tableAttributeList = new ArrayList<>();
+                    tableAttributeList.add(parserList.get(5));
+                    tableAttributeList.add(parserList.get(7));
+                    List<Row> rowList = join(tableNameList, tableAttributeList);
+                    if (rowList.isEmpty()) {
+                        break;
+                    } else {
+                        StringBuilder stringBuilder = new StringBuilder();
+                        stringBuilder.append("[OK]");
+                        stringBuilder.append("\n");
+                        for (int i = 0; i < rowList.size(); i++) {
+                            Row row = rowList.get(i);
+                            List<String> rowValueList = row.getValueList();
+                            for (String value : rowValueList) {
+                                stringBuilder.append(value).append("\t");
+                            }
+                            if (i != rowList.size() - 1) {
+                                stringBuilder.append("\n");
+                            }
+                        }
+                        return stringBuilder.toString();
+                    }
                 case "DELETE":
                     if (parserList.size() < 3 || !"FROM".equalsIgnoreCase(parserList.get(1))) {
                         throw new RuntimeException("DELETE command requires key");
@@ -248,6 +287,125 @@ public class DBServer {
         }
     }
 
+    private List<Row> join(List<String> tableNameList, List<String> tableAttributeList) {
+        if (currentDatabase == null) {
+            throw new RuntimeException("Not use database");
+        }
+
+        List<Table> tableList = currentDatabase.getTableList();
+        for (int i = 0; i < tableNameList.size(); i++) {
+            String tableName = tableNameList.get(i);
+            Table table = null;
+            for (Table t : tableList) {
+                if (tableName.equalsIgnoreCase(t.getName())) {
+                    table = t;
+                    break;
+                }
+            }
+            if (table == null) {
+                throw new RuntimeException("Table '" + currentDatabase.getName() + "." + tableName + "' doesn't exist");
+            } else {
+                String tableAttribute = tableAttributeList.get(i);
+                List<String> columnNameList = table.getColumnNameList();
+                boolean hasAttribute = false;
+                for (String columnName : columnNameList) {
+                    if (columnName.equalsIgnoreCase(tableAttribute)) {
+                        hasAttribute = true;
+                        break;
+                    }
+                }
+                if (!hasAttribute) {
+                    throw new RuntimeException("Unknown column '" + tableAttribute + "' in '" + currentDatabase.getName() + "." + tableName + "'");
+                }
+            }
+        }
+
+        /*
+            5. 关于JOIN语句的细节：
+            对于JOIN操作：丢弃原始表中的ID。
+            丢弃两张表相互匹配的列，在输出到客户端的列中仅保留一份。
+            为生成的每行表创建一个新的唯一ID。
+            属性名称前缀为其来源表的名称。
+         */
+
+        String firstTableName = tableNameList.get(0);
+        Table firstTable = currentDatabase.getTable(firstTableName);
+        List<String> firstTableColumnNameList = firstTable.getColumnNameList();
+        String secondTableName = tableNameList.get(1);
+        Table secondTable = currentDatabase.getTable(secondTableName);
+        List<String> secondTableColumnNameList = secondTable.getColumnNameList();
+        String firstTableAttribute = tableAttributeList.get(0);
+        String secondTableAttribute = tableAttributeList.get(1);
+
+        List<Row> rowList = new ArrayList<>();
+
+        List<Row> firstTableRowList = selectRowList(firstTableName, new HashMap<>());
+        if (firstTableRowList != null && !firstTableRowList.isEmpty()) {
+            int firstTableAttributeIndex = -1;
+            for (int i = 0; i < firstTableColumnNameList.size(); i++) {
+                String columnName = firstTableColumnNameList.get(i);
+                if (columnName.equalsIgnoreCase(firstTableAttribute)) {
+                    firstTableAttributeIndex = i;
+                    break;
+                }
+            }
+            for (Row firstTableRow : firstTableRowList) {
+                String firstTableRowValue = firstTableRow.getValue(firstTableAttributeIndex);
+                Map<String, List<String>> conditionsMap = new HashMap<>();
+                List<String> strings = new ArrayList<>();
+                strings.add(secondTableAttribute);
+                strings.add("==");
+                strings.add(firstTableRowValue);
+                conditionsMap.put(secondTableAttribute, strings);
+                List<Row> secondTableRowList = selectRowList(secondTableName, conditionsMap);
+                if (secondTableRowList != null && !secondTableRowList.isEmpty()) {
+                    Row secondTableRow = secondTableRowList.get(0);
+                    if (rowList.isEmpty()) {
+                        //插入表头
+                        List<String> valueList = new ArrayList<>();
+                        valueList.add("id");
+                        for (String columnName : firstTableColumnNameList) {
+                            if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(firstTableAttribute)) {
+                                valueList.add(firstTableName + "." + columnName);
+                            }
+                        }
+
+                        for (String columnName : secondTableColumnNameList) {
+                            if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(secondTableAttribute)) {
+                                valueList.add(secondTableName + "." + columnName);
+                            }
+                        }
+
+                        rowList.add(new Row(valueList));
+                    }
+
+                    List<String> valueList = new ArrayList<>();
+                    //插入新表id
+                    valueList.add(String.valueOf(rowList.size()));
+                    for (int i = 0; i < firstTableColumnNameList.size(); i++) {
+                        String columnName = firstTableColumnNameList.get(i);
+                        if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(firstTableAttribute)) {
+                            valueList.add(firstTableRow.getValue(i));
+                        }
+                    }
+
+                    for (int i = 0; i < secondTableColumnNameList.size(); i++) {
+                        String columnName = secondTableColumnNameList.get(i);
+                        if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(secondTableAttribute)) {
+                            valueList.add(secondTableRow.getValue(i));
+                        }
+                    }
+
+                    rowList.add(new Row(valueList));
+
+                }
+            }
+        }
+
+        return rowList;
+
+    }
+
     private void use(String name) {
         if (DATABASE_LIST.isEmpty()) {
             throw new RuntimeException("Database not created");
@@ -264,6 +422,7 @@ public class DBServer {
             }
         }
     }
+
     public static boolean hasText(String str) {
         return str != null && !str.isEmpty() && containsText(str);
     }
@@ -299,17 +458,17 @@ public class DBServer {
     }
 
     private static void dropDatabase(String name) {
-        Database currentDatabase = null;
+        Database deleteDatabase = null;
         if (!DATABASE_LIST.isEmpty()) {
             for (Database database : DATABASE_LIST) {
                 String databaseName = database.getName();
                 if (name.equals(databaseName)) {
-                    currentDatabase = database;
+                    deleteDatabase = database;
                     break;
                 }
             }
         }
-        if (currentDatabase == null) {
+        if (deleteDatabase == null) {
             throw new RuntimeException("Database not found");
         }
         //创建数据库
@@ -318,7 +477,10 @@ public class DBServer {
             throw new RuntimeException("Database deletion failed");
         }
 
-        DATABASE_LIST.remove(currentDatabase);
+        DATABASE_LIST.remove(deleteDatabase);
+        if (deleteDatabase == currentDatabase) {
+            currentDatabase = null;
+        }
     }
 
     private static void createTable(String name, List<String> columnNameList) {
@@ -367,7 +529,7 @@ public class DBServer {
         }
         Table table = new Table(name);
         table.setColumnNameList(columnNameList);
-        table.setColumnCount(1);
+        table.setColumnCount(0);
 
         tableList.add(table);
         currentDatabase.setTableList(tableList);
@@ -445,21 +607,21 @@ public class DBServer {
         int columnCount = currentTable.getColumnCount();
         List<Row> rowList = currentTable.getRowList();
 
-        List<String> rowValueList = new ArrayList<>();
+        List<String> rowColumnList = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         sb.append(++columnCount).append("\t");
-        rowValueList.add(String.valueOf(columnCount));
+        rowColumnList.add(String.valueOf(columnCount));
         for (String value : valueList) {
             sb.append(value).append("\t");
-            rowValueList.add(value);
+            rowColumnList.add(value);
         }
         List<String> insertRowList = new ArrayList<>();
         String value = sb.toString();
         insertRowList.add(value);
-        rowList.add(new Row(rowValueList));
+        rowList.add(new Row(rowColumnList));
         File tableFile = Paths.get("databases" + File.separator + currentDatabase.getName() +
                 File.separator + currentTable.getName() + ".tab").toAbsolutePath().toFile();
-        writeFile(tableFile, true, insertRowList);
+        writeTableFile(tableFile, true, insertRowList);
         currentTable.setColumnCount(columnCount);
         currentTable.setRowList(rowList);
         tableList.set(currentTableIndex, currentTable);
@@ -481,60 +643,28 @@ public class DBServer {
         }
         Table table = currentDatabase.getTable(tableName);
         if (table == null) {
+            File file = Paths.get("databases" + File.separator + currentDatabase.getName() + File.separator + tableName + ".tab").toAbsolutePath().toFile();
+            if (file.exists()) {
+                currentDatabase.addTable(file);
+                for (int i = 0; i < DATABASE_LIST.size(); i++) {
+                    Database database = DATABASE_LIST.get(i);
+                    String name = database.getName();
+                    if (name.equalsIgnoreCase(currentDatabase.getName())) {
+                        DATABASE_LIST.set(i, currentDatabase);
+                    }
+                }
+                table = currentDatabase.getTable(tableName);
+            }
+        }
+        if (table == null) {
             throw new RuntimeException("Database not found");
         }
 
         List<String> columnNameList = table.getColumnNameList();
-        List<Row> rowList = table.getRowList();
-        if (columnNameList.isEmpty() || rowList.isEmpty()) {
-            return null;
-        }
-        List<Row> conditionsRowList = new ArrayList<>();
-        for (Row row : rowList) {
-            //逐行遍历
-
-            List<String> valueList = row.getValueList();
-            if (!valueList.isEmpty()) {
-                if (conditionsMap.isEmpty()) {
-                    conditionsRowList.add(row);
-                } else {
-                    for (int i = 0; i < columnNameList.size(); i++) {
-                        String columnName = columnNameList.get(i);
-                        List<String> conditions = conditionsMap.get(columnName);
-                        if (conditions != null && !conditions.isEmpty()) {
-                            //筛选条件含有此字段
-                            String value = row.getValue(i);
-                            String compare = conditions.get(1);
-                            String valueStr = conditions.get(2);
-                            try {
-                                if (!hasText(valueStr) || !hasText(value)) {
-                                    break;
-                                } else if (("==".equals(compare) || "=".equals(compare)) && !value.equals(valueStr)) {
-                                    break;
-                                } else if ("!=".equals(compare) && value.equals(valueStr)) {
-                                    break;
-                                } else if (">".equals(compare) && Double.parseDouble(value) <= Double.parseDouble(valueStr)) {
-                                    break;
-                                } else if ("<".equals(compare) && Double.parseDouble(value) >= Double.parseDouble(valueStr)) {
-                                    break;
-                                } else if (">=".equals(compare) && Double.parseDouble(value) < Double.parseDouble(valueStr)) {
-                                    break;
-                                } else if ("<=".equals(compare) && Double.parseDouble(value) > Double.parseDouble(valueStr)) {
-                                    break;
-                                }
-                            } catch (NumberFormatException e) {
-                                throw new RuntimeException("Number format exception");
-                            }
-                            //满足条件则添加到打印的行中
-                            conditionsRowList.add(row);
-                        }
-                    }
-                }
-            }
-        }
+        List<Row> conditionsRowList = selectRowList(tableName, conditionsMap);
 
         StringBuilder sb = new StringBuilder();
-        if (!conditionsRowList.isEmpty()) {
+        if (conditionsRowList != null && !conditionsRowList.isEmpty()) {
             //筛选结束打印剩余行
             List<Integer> printColumn = new ArrayList<>();
             for (int i = 0; i < columnNameList.size(); i++) {
@@ -583,6 +713,103 @@ public class DBServer {
     }
 
     /**
+     * 查找命令
+     *
+     * @param tableName     表名
+     * @param conditionsMap 条件
+     * @return 筛选后的数据
+     */
+    private static List<Row> selectRowList(String tableName, Map<String, List<String>> conditionsMap) {
+        if (currentDatabase == null) {
+            throw new RuntimeException("Database not selected");
+        }
+        Table table = currentDatabase.getTable(tableName);
+        if (table == null) {
+            throw new RuntimeException("Database not found");
+        }
+
+        List<String> columnNameList = table.getColumnNameList();
+        //查询不存在的属性时候，只读到WHERE并没有判断属性本身存在与否
+        if (!conditionsMap.isEmpty()) {
+            Set<String> keySet = conditionsMap.keySet();
+            for (String key : keySet) {
+                boolean columnNameExist = false;
+                for (String columnName : columnNameList) {
+                    if (columnName.equalsIgnoreCase(key)) {
+                        columnNameExist = true;
+                        break;
+                    }
+                }
+                if (!columnNameExist) {
+                    throw new RuntimeException("Unknown column '" + key + "' in 'where clause'");
+                }
+            }
+        }
+        List<Row> rowList = table.getRowList();
+        if (columnNameList.isEmpty() || rowList.isEmpty()) {
+            return null;
+        }
+        List<Row> conditionsRowList = new ArrayList<>();
+        for (Row row : rowList) {
+            //逐行遍历
+            List<String> valueList = row.getValueList();
+            if (!valueList.isEmpty()) {
+                StringBuilder stringBuilder = new StringBuilder();
+                for (String s : valueList) {
+                    stringBuilder.append(s);
+                }
+                if (!hasText(stringBuilder.toString())) {
+                    break;
+                }
+                boolean isSelect = true;
+                if (!conditionsMap.isEmpty()) {
+                    for (int i = 0; i < columnNameList.size(); i++) {
+                        String columnName = columnNameList.get(i);
+                        List<String> conditions = conditionsMap.get(columnName);
+                        if (conditions != null && !conditions.isEmpty()) {
+                            //筛选条件含有此字段
+                            String value = row.getValue(i);
+                            String compare = conditions.get(1);
+                            String valueStr = conditions.get(2);
+                            try {
+                                if (!hasText(valueStr) || !hasText(value)) {
+                                    isSelect = false;
+                                    break;
+                                } else if (("==".equals(compare) || "=".equals(compare)) && !value.equals(valueStr)) {
+                                    isSelect = false;
+                                    break;
+                                } else if ("!=".equals(compare) && value.equals(valueStr)) {
+                                    isSelect = false;
+                                    break;
+                                } else if (">".equals(compare) && Double.parseDouble(value) <= Double.parseDouble(valueStr)) {
+                                    isSelect = false;
+                                    break;
+                                } else if ("<".equals(compare) && Double.parseDouble(value) >= Double.parseDouble(valueStr)) {
+                                    isSelect = false;
+                                    break;
+                                } else if (">=".equals(compare) && Double.parseDouble(value) < Double.parseDouble(valueStr)) {
+                                    isSelect = false;
+                                    break;
+                                } else if ("<=".equals(compare) && Double.parseDouble(value) > Double.parseDouble(valueStr)) {
+                                    isSelect = false;
+                                    break;
+                                }
+                            } catch (NumberFormatException e) {
+                                throw new RuntimeException("Number format exception");
+                            }
+                        }
+
+                    }
+                }
+                if (isSelect) {
+                    conditionsRowList.add(row);
+                }
+            }
+        }
+        return conditionsRowList;
+    }
+
+    /**
      * 删除命令
      *
      * @param tableName     表名
@@ -598,6 +825,22 @@ public class DBServer {
         }
 
         List<String> columnNameList = table.getColumnNameList();
+        //查询不存在的属性时候，只读到WHERE并没有判断属性本身存在与否
+        if (!conditionsMap.isEmpty()) {
+            Set<String> keySet = conditionsMap.keySet();
+            for (String key : keySet) {
+                boolean columnNameExist = false;
+                for (String columnName : columnNameList) {
+                    if (columnName.equalsIgnoreCase(key)) {
+                        columnNameExist = true;
+                        break;
+                    }
+                }
+                if (!columnNameExist) {
+                    throw new RuntimeException("Unknown column '" + key + "' in 'where clause'");
+                }
+            }
+        }
         List<Row> rowList = table.getRowList();
         if (columnNameList.isEmpty() || rowList.isEmpty()) {
             return;
@@ -676,6 +919,22 @@ public class DBServer {
         }
 
         List<String> columnNameList = table.getColumnNameList();
+        //查询不存在的属性时候，只读到WHERE并没有判断属性本身存在与否
+        if (!conditionsMap.isEmpty()) {
+            Set<String> keySet = conditionsMap.keySet();
+            for (String key : keySet) {
+                boolean columnNameExist = false;
+                for (String columnName : columnNameList) {
+                    if (columnName.equalsIgnoreCase(key)) {
+                        columnNameExist = true;
+                        break;
+                    }
+                }
+                if (!columnNameExist) {
+                    throw new RuntimeException("Unknown column '" + key + "' in 'where clause'");
+                }
+            }
+        }
         List<Row> rowList = table.getRowList();
         if (columnNameList.isEmpty() || rowList.isEmpty()) {
             return;
@@ -762,8 +1021,10 @@ public class DBServer {
         }
         if ("ADD".equalsIgnoreCase(actionType)) {
             List<String> columnNameList = table.getColumnNameList();
-            if (columnNameList.contains(attribute)) {
-                throw new RuntimeException("Attribute already exists");
+            for (String columnName : columnNameList) {
+                if (columnName.equalsIgnoreCase(actionType)) {
+                    throw new RuntimeException("Attribute already exists");
+                }
             }
             columnNameList.add(attribute);
             table.setColumnNameList(columnNameList);
@@ -811,7 +1072,7 @@ public class DBServer {
      * @param append  是否拼接写
      * @param rowList 行列表
      */
-    private static void writeFile(File file, Boolean append, List<String> rowList) {
+    private static void writeTableFile(File file, Boolean append, List<String> rowList) {
         try (FileWriter fw = new FileWriter(file, append)) {
             for (String row : rowList) {
                 row += "\n";
@@ -848,6 +1109,9 @@ public class DBServer {
 //                    } else {
                         sb = new StringBuilder();
                         for (String value : valueList) {
+                            if (value == null || "null".equalsIgnoreCase(value)) {
+                                value = "\t";
+                            }
                             sb.append(value).append("\t");
                         }
                         fw.write(sb.toString());
@@ -883,7 +1147,7 @@ public class DBServer {
             String key = null;
             for (int i = whereIndex; i < parserList.size(); i++) {
                 String parser = parserList.get(i);
-                if (!Parser.SPECIAL_CHARACTERS.contains(parser)) {
+                if (!Parser.SPECIAL_CHARACTERS.contains(parser) && !"and".equalsIgnoreCase(parser)) {
                     if (!hasText(key)) {
                         key = parser;
                     }
@@ -918,6 +1182,17 @@ public class DBServer {
         }
     }
 
+    private static boolean isReservedWords(String word) {
+        if (!hasText(word)) {
+            return false;
+        }
+        for (String reservedWord : RESERVED_WORD_LIST) {
+            if (word.equalsIgnoreCase(reservedWord)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     //  === Methods below handle networking aspects of the project - you will not need to change these ! ===
 
