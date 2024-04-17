@@ -1,7 +1,29 @@
 .idea
 .gradle
 
+# Ignore the coding platform system auto-generated files
 .DS-Store
+
 Thumbs.db
 
 *.class
+
+# Ignore STAG folder's specific
+cw-stag/libs
+
+
+
+# Ignore Intellij IDEA related files
+*.iml
+*.ipr
+*.iws
+**/.idea/
+
+# Ignore Gradle related files
+.gradle/
+build/
+
+# Ignore the compiled files
+**/target/
+**/.mvn/
+
