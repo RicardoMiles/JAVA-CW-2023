@@ -20,8 +20,8 @@ cw-stag/libs
 **/.idea/
 
 # Ignore Gradle related files
-.gradle/
-build/
+**/.gradle/
+**/build/
 
 # Ignore the compiled files
 **/target/
