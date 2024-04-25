@@ -1,5 +1,8 @@
 package edu.uob;
 
+import com.uob.GameEngine.GameController;
+import com.uob.GameEngine.GameModel;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,6 +16,7 @@ import java.nio.file.Paths;
 public final class GameServer {
 
     private static final char END_OF_TRANSMISSION = 4;
+    private GameController controller;
 
     public static void main(String[] args) throws IOException {
         File entitiesFile = Paths.get("config" + File.separator + "basic-entities.dot").toAbsolutePath().toFile();
@@ -30,6 +34,8 @@ public final class GameServer {
     */
     public GameServer(File entitiesFile, File actionsFile) {
         // TODO implement your server logic here
+        GameModel model = new GameModel(entitiesFile,actionsFile);
+        controller = new GameController(model);
     }
 
     /**
