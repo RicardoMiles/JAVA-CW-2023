@@ -1,5 +1,6 @@
 package edu.uob;
 
+import com.alexmerz.graphviz.ParseException;
 import edu.uob.GameEngine.*;
 import org.xml.sax.SAXException;
 
@@ -43,6 +44,8 @@ public final class GameServer {
         }catch(ParserConfigurationException e){
             e.printStackTrace();
         }catch(SAXException e){
+            e.printStackTrace();
+        } catch (ParseException e) {
             e.printStackTrace();
         }
     }
