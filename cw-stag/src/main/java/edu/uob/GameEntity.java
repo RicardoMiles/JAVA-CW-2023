@@ -1,12 +1,13 @@
 package edu.uob;
 
-public abstract class GameEntity
+//public abstract class GameEntity
+public class GameEntity
 {
     private String name;
     private String description;
     private String type;
 
-    public GameEntity(String name, String description)
+    public GameEntity(String name, String description,String type)
     {
         this.name = name;
         this.description = description;
