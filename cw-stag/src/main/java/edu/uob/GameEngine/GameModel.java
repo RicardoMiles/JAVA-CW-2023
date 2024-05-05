@@ -3,6 +3,7 @@ package edu.uob.GameEngine;
 import edu.uob.GameAction;
 import edu.uob.GameEntity;
 import edu.uob.Location;
+import edu.uob.StagEntities.Player;
 import com.alexmerz.graphviz.ParseException;
 import com.alexmerz.graphviz.Parser;
 import com.alexmerz.graphviz.objects.Edge;
@@ -29,10 +30,9 @@ import javax.xml.parsers.ParserConfigurationException;
 public class GameModel {
     private String startingLocation;
     private String currentPlayer;
-
-    private HashMap<String, Location> locationList = new HashMap<>();
-
     private TreeMap<String, HashSet<GameAction>> actionList = new TreeMap<>();
+    private HashMap<String, Player> playerList = new HashMap<>();
+    private HashMap<String, Location> locationList = new HashMap<>();
 
     public GameModel(File entitiesFileName, File actionsFileName) throws IOException, ParserConfigurationException, SAXException, ParseException {
         loadEntitiesFile(entitiesFileName.getAbsolutePath());
@@ -160,6 +160,36 @@ public class GameModel {
     //TODO public TreeMap<String, HashSet<GameAction>> getActionList()
 
     //TODO public HashMap<String, Location> getLocationList()
+
+    public String getStartingLocation(){
+        return startingLocation;
+    }
+
+    public String getCurrentPlayerName(){
+        return currentPlayer;
+    }
+
+    public Player getPlayerByName(String playerName){
+        if(!playerList.containsKey(playerName)){
+            Player newPlayer = new Player(startingLocation);
+            playerList.put(playerName, newPlayer);
+            return newPlayer;
+        }else {
+            return playerList.get(playerName);
+        }
+    }
+
+    public HashMap<String, Player> getPlayerList(){
+        return playerList;
+    }
+
+    public TreeMap<String, HashSet<GameAction>> getActionList(){
+        return actionList;
+    }
+
+    public HashMap<String, Location> getLocationList(){
+        return locationList;
+    }
 
 
 }
