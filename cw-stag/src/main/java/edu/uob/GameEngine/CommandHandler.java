@@ -3,11 +3,13 @@ package edu.uob.GameEngine;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import edu.uob.GameEntity;
-import edu.uob.GameServer;
+import edu.uob.*;
+import edu.uob.StagCommand.*;
+import edu.uob.StagEntities.*;
 
 public class CommandHandler {
     GameModel model;
+    PlayerCommand playerCMD;
     static ArrayList<String> builtIns = new ArrayList<>(Arrays.asList("inventory", "inv", "get", "drop", "goto", "look"));
     public CommandHandler(GameModel model){
         this.model = model;
@@ -17,6 +19,7 @@ public class CommandHandler {
         GameTokenizer tokenizer = new GameTokenizer(command);
         ArrayList<String> tokens = tokenizer.splitIntoTokens();
         model.setCurrentPlayer(tokenizer.getPlayerName());
+        Player player = model.getPlayerByName(tokenizer.getPlayerName());
 
         if(!checkUniqueBuiltinTrigger(tokens,tokenizer))throw new RuntimeException("不能匹配action,请再试一遍.\n");
 
@@ -25,12 +28,18 @@ public class CommandHandler {
                 //TODO inventory command here
             case "get":
                 //TODO get  command here
+                playerCMD = new GetCommand(player, model, tokens);
             case "drop":
                 //TODO drop command here
             case "goto":
                 //TODO goto command here
             case"look":
                 //TODO look command here
+            case "dynamic":
+                    DynamicActionParser actionParser = new DynamicActionParser(model, tokens, tokenizer.getCommandsWithoutPlayer());
+                    GameAction action = actionParser.getAction();
+                    playerCMD = new DynamicCommand(player, model, action);
+
         }
         return "什么基础命令都没读出来";
     }
