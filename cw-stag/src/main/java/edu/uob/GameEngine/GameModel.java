@@ -153,14 +153,6 @@ public class GameModel {
         this.currentPlayer = currentPlayerName;
     }
 
-    //TODO public Player getPlayerByName(String playerName)
-
-    //TODO public HashMap<String, Player> getPlayerList()
-
-    //TODO public TreeMap<String, HashSet<GameAction>> getActionList()
-
-    //TODO public HashMap<String, Location> getLocationList()
-
     public String getStartingLocation(){
         return startingLocation;
     }

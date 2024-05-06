@@ -35,13 +35,8 @@ public class CommandHandler {
                 //TODO goto command here
             case"look":
                 //TODO look command here
-            case "dynamic":
-                    DynamicActionParser actionParser = new DynamicActionParser(model, tokens, tokenizer.getCommandsWithoutPlayer());
-                    GameAction action = actionParser.getAction();
-                    playerCMD = new DynamicCommand(player, model, action);
-
         }
-        return "什么基础命令都没读出来";
+        return "bloody hell";
     }
 
     private String standardizeCommand(ArrayList<String> tokens){
