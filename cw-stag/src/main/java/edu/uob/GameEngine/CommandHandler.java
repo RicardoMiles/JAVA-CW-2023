@@ -14,7 +14,7 @@ public class CommandHandler {
     public CommandHandler(GameModel model){
         this.model = model;
     }
-
+/*
     public String parseCommand(String command){
         GameTokenizer tokenizer = new GameTokenizer(command);
         ArrayList<String> tokens = tokenizer.splitIntoTokens();
@@ -38,6 +38,46 @@ public class CommandHandler {
         }
         return "bloody hell";
     }
+*/
+    public String parseCommand(String command) {
+        try {
+            GameTokenizer tokenizer = new GameTokenizer(command);
+            ArrayList<String> tokens = tokenizer.splitIntoTokens();
+            if (tokens.isEmpty()) {
+                return "Error: No input provided.\n";
+            }
+            model.setCurrentPlayer(tokenizer.getPlayerName());
+            Player player = model.getPlayerByName(tokenizer.getPlayerName());
+
+            if (!checkUniqueBuiltinTrigger(tokens, tokenizer)) {
+                return "Error: Action cannot be matched, please try again.\n";
+            }
+
+            switch (standardizeCommand(tokens)) {
+                case "inventory":
+                    playerCMD = new InventoryCommand(player, model);
+                    break;
+                case "get":
+                    playerCMD = new GetCommand(player, model, tokens);
+                    break;
+                case "drop":
+                    playerCMD = new DropCommand(player, model, tokens);
+                    break;
+                case "goto":
+                    playerCMD = new GotoCommand(player, model, tokens);
+                    break;
+                case "look":
+                    playerCMD = new LookCommand(player, model);
+                    break;
+                default:
+                    return "Error: Command not recognized.\n";
+            }
+            return playerCMD.interpretCMD();
+        } catch (Exception e) {
+            return "Server Error: " + e.getMessage() + "\n";
+        }
+    }
+
 
     private String standardizeCommand(ArrayList<String> tokens){
         for(String token :tokens){
