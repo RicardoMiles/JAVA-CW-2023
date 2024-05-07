@@ -27,3 +27,6 @@ cw-stag/libs
 **/target/
 **/.mvn/
 
+# Ignorance update 2024-05-07
+# for macOS devices sync editing 
+.DS_Store
