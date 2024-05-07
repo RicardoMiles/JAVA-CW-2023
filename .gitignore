@@ -30,3 +30,6 @@ cw-stag/libs
 # Ignorance update 2024-05-07
 # for macOS devices sync editing 
 .DS_Store
+cw-stag/src/test/java/edu/uob/BasicCommandTests.java
+cw-stag/src/test/java/edu/uob/ExtendedTests.java
+cw-stag/src/test/java/edu/uob/MultiPlayerTests.java
