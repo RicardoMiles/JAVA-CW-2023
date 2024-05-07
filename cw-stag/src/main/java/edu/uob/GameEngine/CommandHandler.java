@@ -54,7 +54,7 @@ public class CommandHandler {
             }
 
             switch (standardizeCommand(tokens)) {
-                case "inventory":
+                case "inventory","inv":
                     playerCMD = new InventoryCommand(player, model);
                     break;
                 case "get":
