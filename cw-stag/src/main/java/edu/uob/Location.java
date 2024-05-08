@@ -57,7 +57,7 @@ public class Location {
         return false;
     }
 
-    public GameEntity getEntityByName(String entityName)  {
+    public GameEntity getPotentialEntity(String entityName)  {
         for(GameEntity entity : entityList){
             if(entity.getName().equalsIgnoreCase(entityName)){
                 return entity;

@@ -27,7 +27,7 @@ public class DynamicActionParser {
 
         ArrayList<GameAction> potentialActions = getPotentialActionsByTrigger(trigger);
         if(potentialActions.size() == 0){
-            throw new RuntimeException("Unable to match an executable action to the valid trigger.\n");
+            throw new RuntimeException("Sorry, Unable to match an executable action to the valid trigger.\n");
         }else if(potentialActions.size() > 1){
             throw new RuntimeException("Ambiguous command is found, please try again.\n");
         } else {

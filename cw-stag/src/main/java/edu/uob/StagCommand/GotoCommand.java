@@ -14,7 +14,7 @@ public class GotoCommand extends PlayerCommand{
 
     @Override
     public String interpretCMD() {
-        checkCommandCompleted();
+        syntaxCompleteCheck();
         Location currentLocation = model.getLocationList().get(player.getCurrentLocation());
         ArrayList<String> paths = currentLocation.getPaths();
         int index = getPathIndex(paths);

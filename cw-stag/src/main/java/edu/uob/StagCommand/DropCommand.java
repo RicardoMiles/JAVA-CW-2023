@@ -14,7 +14,7 @@ public class DropCommand extends PlayerCommand{
 
     @Override
     public String interpretCMD()  {
-        checkCommandCompleted();
+        syntaxCompleteCheck();
         ArrayList<GameEntity> playerInventory = player.getInventory();
         int index = getEntityIndexByType(playerInventory, "artefacts", "drop");
         GameEntity artefact = player.getInventory().get(index);

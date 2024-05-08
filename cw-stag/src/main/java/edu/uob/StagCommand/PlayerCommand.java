@@ -20,7 +20,7 @@ public class PlayerCommand {
         return "";
     }
 
-    public void checkCommandCompleted()  {
+    public void syntaxCompleteCheck()  {
         if(tokens.size() <=1 ){
             throw new RuntimeException("the command is incomplete.\n");
         }

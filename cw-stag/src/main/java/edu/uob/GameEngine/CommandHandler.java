@@ -10,35 +10,11 @@ import edu.uob.StagEntities.*;
 public class CommandHandler {
     GameModel model;
     PlayerCommand playerCMD;
-    static ArrayList<String> builtIns = new ArrayList<>(Arrays.asList("inventory", "inv", "get", "drop", "goto", "look"));
+    static ArrayList<String> builtIns = new ArrayList<>(Arrays.asList("inventory", "inv", "get", "drop", "goto", "look", "health"));
     public CommandHandler(GameModel model){
         this.model = model;
     }
-/*
-    public String parseCommand(String command){
-        GameTokenizer tokenizer = new GameTokenizer(command);
-        ArrayList<String> tokens = tokenizer.splitIntoTokens();
-        model.setCurrentPlayer(tokenizer.getPlayerName());
-        Player player = model.getPlayerByName(tokenizer.getPlayerName());
 
-        if(!checkUniqueBuiltinTrigger(tokens,tokenizer))throw new RuntimeException("不能匹配action,请再试一遍.\n");
-
-        switch(standardizeCommand(tokens)){
-            case "inventory":
-                //TODO inventory command here
-            case "get":
-                //TODO get  command here
-                playerCMD = new GetCommand(player, model, tokens);
-            case "drop":
-                //TODO drop command here
-            case "goto":
-                //TODO goto command here
-            case"look":
-                //TODO look command here
-        }
-        return "bloody hell";
-    }
-*/
     public String parseCommand(String command) {
         try {
             GameTokenizer tokenizer = new GameTokenizer(command);
@@ -73,6 +49,9 @@ public class CommandHandler {
                     DynamicActionParser actionParser = new DynamicActionParser(model, tokens, tokenizer.getCommandsWithoutPlayer());
                     GameAction action = actionParser.getAction();
                     playerCMD = new DynamicCommand(player, model, action);
+                    break;
+                case "health":
+                    playerCMD = new HealthCommand(player,model);
                     break;
                 default:
                     return "Error: Command not recognized.\n";
