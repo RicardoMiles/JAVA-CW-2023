@@ -69,6 +69,11 @@ public class CommandHandler {
                 case "look":
                     playerCMD = new LookCommand(player, model);
                     break;
+                case "flexible":
+                    DynamicActionParser actionParser = new DynamicActionParser(model, tokens, tokenizer.getCommandsWithoutPlayer());
+                    GameAction action = actionParser.getAction();
+                    playerCMD = new DynamicCommand(player, model, action);
+                    break;
                 default:
                     return "Error: Command not recognized.\n";
             }
@@ -85,7 +90,7 @@ public class CommandHandler {
                 return token;
             }
         }
-        return "动态";
+        return "flexible";
     }
 
     private boolean checkUniqueBuiltinTrigger(ArrayList<String> tokens, GameTokenizer tokenizer){

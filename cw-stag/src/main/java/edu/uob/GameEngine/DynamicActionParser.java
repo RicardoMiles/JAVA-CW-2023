@@ -1,6 +1,7 @@
 package edu.uob.GameEngine;
 
 import edu.uob.*;
+import edu.uob.StagEntities.Player;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,13 +23,13 @@ public class DynamicActionParser {
 
     public GameAction getAction()  {
         Set<String> triggers = model.getActionList().keySet();
-        if(!verifyTriggerPhrase(triggers)) throw new RuntimeException("unable to find a valid trigger.\n");
+        if(!verifyTriggerPhrase(triggers)) throw new RuntimeException("Unable to find a valid trigger.\n");
 
         ArrayList<GameAction> potentialActions = getPotentialActionsByTrigger(trigger);
         if(potentialActions.size() == 0){
-            throw new RuntimeException("unable to match an executable action to the valid trigger.\n");
+            throw new RuntimeException("Unable to match an executable action to the valid trigger.\n");
         }else if(potentialActions.size() > 1){
-            throw new RuntimeException("the command is ambiguous, please try again.\n");
+            throw new RuntimeException("Ambiguous command is found, please try again.\n");
         } else {
             action = potentialActions.get(0);
         }
@@ -97,10 +98,14 @@ public class DynamicActionParser {
         ArrayList<GameEntity> availableEntities = new ArrayList<>();
 
         // Get ALL the subject entities from Player Inventory
-        // TODO making player
+        String playerName = model.getCurrentPlayerName();
+        Player player = model.getPlayerByName(playerName);
+        availableEntities.addAll(player.getInventory());
 
         // Get ALL the subject entities from current Location
-        // TODO making player and location
+        String currentLocationName = player.getCurrentLocation();
+        Location currentLocation = model.getLocationList().get(currentLocationName);
+        availableEntities.addAll(currentLocation.getEntityList());
 
         return availableEntities;
     }
