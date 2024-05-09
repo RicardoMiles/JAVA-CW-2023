@@ -18,7 +18,7 @@ public class CommandHandler {
     public String parseCommand(String command) {
         try {
             GameTokenizer tokenizer = new GameTokenizer(command);
-            ArrayList<String> tokens = tokenizer.splitIntoTokens();
+            ArrayList<String> tokens = tokenizer.basicStringDealToCommands();
             if (tokens.isEmpty()) {
                 return "Error: No input provided.\n";
             }
@@ -61,7 +61,6 @@ public class CommandHandler {
             return "Server Error: " + e.getMessage() + "\n";
         }
     }
-
 
     private String standardizeCommand(ArrayList<String> tokens){
         for(String token :tokens){

@@ -98,7 +98,7 @@ public class GameModel {
         Element root = document.getDocumentElement();
         NodeList actions = root.getChildNodes();
 
-        // Get actions by index (only odd items are actions - 1,3,5 etc.)
+        // Retrieve actions by index
         for(int i=1; i<actions.getLength(); i+=2){
             Element action = (Element)actions.item(i);
             GameAction newAction = new GameAction();

@@ -80,7 +80,6 @@ public class DynamicActionParser {
         return containTriggerPhrase;
     }
 
-    // Check if ALL subject entities in each action that matches the trigger are available to the player
     public ArrayList<GameAction> getPotentialActionsByTrigger(String trigger)  {
         HashSet<GameAction> actionsMatchTrigger = model.getActionList().get(trigger);
         ArrayList<GameAction> potentialActions = new ArrayList<>();
@@ -97,12 +96,10 @@ public class DynamicActionParser {
     private ArrayList<GameEntity> getAvailableEntities(){
         ArrayList<GameEntity> availableEntities = new ArrayList<>();
 
-        // Get ALL the subject entities from Player Inventory
         String playerName = model.getCurrentPlayerName();
         Player player = model.getPlayerByName(playerName);
         availableEntities.addAll(player.getInventory());
 
-        // Get ALL the subject entities from current Location
         String currentLocationName = player.getCurrentLocation();
         Location currentLocation = model.getLocationList().get(currentLocationName);
         availableEntities.addAll(currentLocation.getEntityList());

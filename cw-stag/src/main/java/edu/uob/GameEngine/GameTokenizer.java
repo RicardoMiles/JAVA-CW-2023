@@ -7,13 +7,17 @@ import java.util.Collections;
 public class GameTokenizer {
     private String command;
     private String playerName;
+
+    private String currentToken;
+
+    private Boolean duplicateOrNot;
     private String commandsWithoutPlayer;
 
     public GameTokenizer(String command){
         this.command = command;
     }
 
-    public ArrayList<String> splitIntoTokens(){
+    public ArrayList<String> basicStringDealToCommands(){
         // Get the player's name
         ArrayList<String> tokens = new ArrayList<>();
         String[] commandArray = command.split(":",2);
@@ -27,12 +31,12 @@ public class GameTokenizer {
         Collections.addAll(tokens, tokenArray);
         tokens.removeAll(Arrays.asList("", null));
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder tempTokenList = new StringBuilder();
         for(String token : tokens){
-            sb.append(token + " ");
+            tempTokenList.append(token + " ");
         }
-        sb.delete(sb.length()-1,sb.length());
-        this.commandsWithoutPlayer = sb.toString();
+        tempTokenList.delete(tempTokenList.length()-1,tempTokenList.length());
+        this.commandsWithoutPlayer = tempTokenList.toString();
         return tokens;
     }
 
