@@ -10,39 +10,15 @@ import edu.uob.StagEntities.*;
 public class CommandHandler {
     GameModel model;
     PlayerCommand playerCMD;
-    static ArrayList<String> builtIns = new ArrayList<>(Arrays.asList("inventory", "inv", "get", "drop", "goto", "look"));
+    static ArrayList<String> builtIns = new ArrayList<>(Arrays.asList("inventory", "inv", "get", "drop", "goto", "look", "health"));
     public CommandHandler(GameModel model){
         this.model = model;
     }
-/*
-    public String parseCommand(String command){
-        GameTokenizer tokenizer = new GameTokenizer(command);
-        ArrayList<String> tokens = tokenizer.splitIntoTokens();
-        model.setCurrentPlayer(tokenizer.getPlayerName());
-        Player player = model.getPlayerByName(tokenizer.getPlayerName());
 
-        if(!checkUniqueBuiltinTrigger(tokens,tokenizer))throw new RuntimeException("不能匹配action,请再试一遍.\n");
-
-        switch(standardizeCommand(tokens)){
-            case "inventory":
-                //TODO inventory command here
-            case "get":
-                //TODO get  command here
-                playerCMD = new GetCommand(player, model, tokens);
-            case "drop":
-                //TODO drop command here
-            case "goto":
-                //TODO goto command here
-            case"look":
-                //TODO look command here
-        }
-        return "bloody hell";
-    }
-*/
     public String parseCommand(String command) {
         try {
             GameTokenizer tokenizer = new GameTokenizer(command);
-            ArrayList<String> tokens = tokenizer.splitIntoTokens();
+            ArrayList<String> tokens = tokenizer.basicStringDealToCommands();
             if (tokens.isEmpty()) {
                 return "Error: No input provided.\n";
             }
@@ -54,7 +30,7 @@ public class CommandHandler {
             }
 
             switch (standardizeCommand(tokens)) {
-                case "inventory":
+                case "inventory","inv":
                     playerCMD = new InventoryCommand(player, model);
                     break;
                 case "get":
@@ -69,6 +45,14 @@ public class CommandHandler {
                 case "look":
                     playerCMD = new LookCommand(player, model);
                     break;
+                case "flexible":
+                    DynamicActionParser actionParser = new DynamicActionParser(model, tokens, tokenizer.getCommandsWithoutPlayer());
+                    GameAction action = actionParser.getAction();
+                    playerCMD = new DynamicCommand(player, model, action);
+                    break;
+                case "health":
+                    playerCMD = new HealthCommand(player,model);
+                    break;
                 default:
                     return "Error: Command not recognized.\n";
             }
@@ -78,14 +62,13 @@ public class CommandHandler {
         }
     }
 
-
     private String standardizeCommand(ArrayList<String> tokens){
         for(String token :tokens){
             if(builtIns.contains(token)){
                 return token;
             }
         }
-        return "动态";
+        return "flexible";
     }
 
     private boolean checkUniqueBuiltinTrigger(ArrayList<String> tokens, GameTokenizer tokenizer){

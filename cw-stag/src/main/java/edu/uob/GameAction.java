@@ -11,10 +11,17 @@ public class GameAction {
 
     public void addAttributes(String type, String attributeName) {
         switch (type) {
-            case "subjects" -> subjects.add(attributeName);
-            case "consumed" -> consumed.add(attributeName);
-            case "produced" -> produced.add(attributeName);
-            default -> throw new RuntimeException("unrecognized action attribute.\n");
+            case "subjects":
+                subjects.add(attributeName);
+                break;
+            case "consumed":
+                consumed.add(attributeName);
+                break;
+            case "produced":
+                produced.add(attributeName);
+                break;
+            default:
+                throw new RuntimeException("unrecognized action attribute.\n");
         }
     }
 

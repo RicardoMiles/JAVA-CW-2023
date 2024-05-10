@@ -7,8 +7,8 @@ import java.util.ArrayList;
 
 public class Player {
     private ArrayList<GameEntity> inventory = new ArrayList<>();
-    private static final Integer MAX_HEATH = 3;
-    private int health = MAX_HEATH;
+    private static final Integer MAX_HEALTH = 3;
+    private int health = MAX_HEALTH;
     private String currentLocation;
 
     public Player(String startingLocation){
@@ -58,8 +58,11 @@ public class Player {
         throw new RuntimeException("there is no such entity in player inventory.\n");
     }
 
+    public int getHealth(){
+        return health;
+    }
     public void increaseHealth(){
-        if(health<MAX_HEATH) health++;
+        if(health<MAX_HEALTH) health++;
     }
 
     public void decreaseHealth(){
@@ -67,7 +70,7 @@ public class Player {
     }
 
     public void restoreHealth(){
-        health = MAX_HEATH;
+        health = MAX_HEALTH;
     }
 
     public boolean isDead(){

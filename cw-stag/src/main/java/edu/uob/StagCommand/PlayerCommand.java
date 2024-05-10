@@ -20,29 +20,32 @@ public class PlayerCommand {
         return "";
     }
 
-    public void checkCommandCompleted()  {
+    public void syntaxCompleteCheck()  {
         if(tokens.size() <=1 ){
             throw new RuntimeException("the command is incomplete.\n");
         }
     }
 
     public int getEntityIndexByType(ArrayList<GameEntity> entityList, String type, String builtinCommand)  {
-        int count = 0;
-        int index = 0;
+        int matchCount = 0;
+        int foundIndex = 0;
+
         for(int i=0; i<entityList.size(); i++){
             if(entityList.get(i).getType().equals(type)) {
                 if (tokens.contains(entityList.get(i).getName())) {
-                    count++;
-                    index = i;
+                    matchCount++;
+                    foundIndex = i;
                 }
             }
         }
-        if(count == 0){
+
+        //exception handling
+        if(matchCount == 0){
             throw new RuntimeException("cannot find the " + type);
-        }else if(count > 1) {
+        }else if(matchCount > 1) {
             throw new RuntimeException("there is more than one thing you can \'" + builtinCommand + "\' here - which one do you want?\n");
         }
-        return index;
+        return foundIndex;
     }
 
 }

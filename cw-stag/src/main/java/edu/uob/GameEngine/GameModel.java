@@ -98,7 +98,7 @@ public class GameModel {
         Element root = document.getDocumentElement();
         NodeList actions = root.getChildNodes();
 
-        // Get actions by index (only odd items are actions - 1,3,5 etc.)
+        // Retrieve actions by index
         for(int i=1; i<actions.getLength(); i+=2){
             Element action = (Element)actions.item(i);
             GameAction newAction = new GameAction();
@@ -119,8 +119,8 @@ public class GameModel {
             newAction.addNarration(narrationSentence);
 
             // Get trigger phrases
-            for(int j=0; j<triggers.getElementsByTagName("keyword").getLength(); j++){
-                String triggerPhrase = triggers.getElementsByTagName("keyword").item(j).getTextContent();
+            for(int j=0; j<triggers.getElementsByTagName("keyphrase").getLength(); j++){
+                String triggerPhrase = triggers.getElementsByTagName("keyphrase").item(j).getTextContent();
                 // Check if the hashset of a trigger already exists
                 if(actionList.containsKey(triggerPhrase)){
                     if(!actionExists(triggerPhrase, newAction)) {

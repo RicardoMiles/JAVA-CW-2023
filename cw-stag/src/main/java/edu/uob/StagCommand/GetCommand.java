@@ -18,7 +18,7 @@ public class GetCommand extends PlayerCommand{
 
     @Override
     public String interpretCMD()  {
-        checkCommandCompleted();
+        syntaxCompleteCheck();
         Location currentLocation = model.getLocationList().get(player.getCurrentLocation());
         ArrayList<GameEntity> entityList = currentLocation.getEntityList();
 

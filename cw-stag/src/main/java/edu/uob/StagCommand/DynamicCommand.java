@@ -108,7 +108,7 @@ public class DynamicCommand extends PlayerCommand{
 
     private void consumeFromLocation(String consumedEntity)  {
         if(currentLocation.checkEntityInLocation(consumedEntity)){
-            GameEntity subject = currentLocation.getEntityByName(consumedEntity);
+            GameEntity subject = currentLocation.getPotentialEntity(consumedEntity);
             storeroom.addEntity(subject);
             currentLocation.getEntityList().remove(subject);
         }
@@ -124,7 +124,7 @@ public class DynamicCommand extends PlayerCommand{
         // Produce from storeroom
         ArrayList<GameEntity> storeroomEntities = storeroom.getEntityList();
         if(storeroom.checkEntityInLocation(producedEntity)){
-            GameEntity entity = storeroom.getEntityByName(producedEntity);
+            GameEntity entity = storeroom.getPotentialEntity(producedEntity);
             currentLocation.addEntity(entity);
             storeroomEntities.remove(entity);
         }
