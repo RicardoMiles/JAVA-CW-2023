@@ -6,44 +6,98 @@ import com.alexmerz.graphviz.Parser;
 import com.alexmerz.graphviz.objects.Edge;
 import com.alexmerz.graphviz.objects.Graph;
 import com.alexmerz.graphviz.objects.Node;
+import edu.uob.GameEntities.Artefacts;
+import edu.uob.GameEntities.Characters;
+import edu.uob.GameEntities.Furniture;
+import edu.uob.GameEntities.Location;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class DotReader {
-    @Test
-    void testBasicEntitiesFileIsReadable() {
+    private String startingLocation;
+    private HashMap<String, Location> locationList = new HashMap<>();
+
+    public DotReader(File entitiesFile) throws FileNotFoundException, ParseException{
+        Parser parser = new Parser();
         try {
-            Parser parser = new Parser();
-            FileReader reader = new FileReader("config" + File.separator + "basic-entities.dot");
-            parser.parse(reader);
-            Graph wholeDocument = parser.getGraphs().get(0);
-            ArrayList<Graph> sections = wholeDocument.getSubgraphs();
+            FileReader reader = new FileReader(entitiesFile);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("EntitiesFile.dot NOT FOUND! ");
+        }
+        Graph wholeDocument = parser.getGraphs().get(0);
+        ArrayList<Graph> sections = wholeDocument.getSubgraphs();
 
-            // The locations will always be in the first subgraph
-            ArrayList<Graph> locations = sections.get(0).getSubgraphs();
-            Graph firstLocation = locations.get(0);
-            Node locationDetails = firstLocation.getNodes(false).get(0);
-            // Yes, you do need to get the ID twice !
-            String locationName = locationDetails.getId().getId();
-            assertEquals("cabin", locationName, "First location should have been 'cabin'");
+        loadLocations(sections);
+        loadPaths(sections);
+    }
 
-            // The paths will always be in the second subgraph
-            ArrayList<Edge> paths = sections.get(1).getEdges();
-            Edge firstPath = paths.get(0);
-            Node fromLocation = firstPath.getSource().getNode();
-            String fromName = fromLocation.getId().getId();
-            Node toLocation = firstPath.getTarget().getNode();
-            String toName = toLocation.getId().getId();
-            assertEquals("cabin", fromName, "First path should have been from 'cabin'");
-            assertEquals("forest", toName, "First path should have been to 'forest'");
+    private void loadLocations(ArrayList<Graph> sections){
+        // The locations will always be in the first subgraph
+        ArrayList<Graph> locations = sections.get(0).getSubgraphs();
 
-        } catch (FileNotFoundException fnfe) {
-            fail("FileNotFoundException was thrown when attempting to read basic entities file");
-        } catch (ParseException pe) {
-            fail("ParseException was thrown when attempting to read basic entities file");
+        // The starting location is the first location in entitiesFile
+        this.startingLocation = locations.get(0).getNodes(false).get(0).getId().getId();
+
+        for(Graph location : locations){
+            Node locationDetails = location.getNodes(false).get(0);
+            String locationName = locationDetails.getId().getId().toLowerCase();
+            Location newLocation = new Location(locationName,locationDetails.getAttribute("description"));
+            ArrayList<Graph> entities = location.getSubgraphs();
+
+            // Load entities of each location
+            for(Graph entity : entities){
+                ArrayList<Node> entityNodes = entity.getNodes(false);
+                String type = entity.getId().getId();
+                for (Node node : entityNodes) {
+                    switch(type){
+                        case "artefacts":
+                            Artefacts newArtefact = new Artefacts(node.getId().getId(), node.getAttribute("description"));
+                            newLocation.addItem(newArtefact);
+                        case "furniture":
+                            Furniture newFurniture = new Furniture(node.getId().getId(), node.getAttribute("description"));
+                            newLocation.addFurniture(newFurniture);
+                        case "characters":
+                            Characters newCharacter;
+                            newCharacter = new Characters(node.getId().getId(), node.getAttribute("description"));
+                            newLocation.addCharacter(newCharacter);
+                    }
+                }
+            }
+            locationList.put(locationName, newLocation);
+        }
+
+    }
+
+    private void loadPaths(ArrayList<Graph> sections){
+        // The paths will always be in the second subgraph
+        ArrayList<Edge> paths = sections.get(1).getEdges();
+        for(Edge path : paths){
+            // Start
+            Node fromLocation = path.getSource().getNode();
+            String fromName = fromLocation.getId().getId().toLowerCase();
+            Location fromLoc = locationList.get(fromName);
+            // Target
+            Node toLocation = path.getTarget().getNode();
+            String toName = toLocation.getId().getId().toLowerCase();
+            if(!locationList.containsKey(fromName) || !locationList.containsKey(toName)){
+                throw new RuntimeException("Can not create paths between two locations.\n");
+            }
+            // Add path for fromLocation
+            fromLoc.addPath(toName);
+            System.out.println("From" + fromLocation.getId() + " To " + toLocation.getId()+ " is available ");
         }
     }
+
+    public HashMap<String, Location> getLocationList() {
+        return this.locationList;
+    }
+
+    public String getStartingLocation() {
+        return this.startingLocation;
+    }
+
 }

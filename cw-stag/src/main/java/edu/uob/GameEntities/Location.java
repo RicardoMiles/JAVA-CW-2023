@@ -10,14 +10,17 @@ public class Location extends GameEntity {
     private String description;
     private List<Artefacts> artefacts; // 地点中的物品列表
     private List<Furniture> furniture; // 地点中的家具列表
-    private List<Character> characters; // 地点中的角色列表
+    private List<Characters> characters; // 地点中的角色列表
     private List<Path> paths; // 地点可以通往的路径列表
+
+    private List<Player> players; // Players in specific location
     public Location(String name, String description) {
         super(name, description);
         this.artefacts = new ArrayList<>();
         this.furniture = new ArrayList<>();
         this.characters = new ArrayList<>();
         this.paths = new ArrayList<>();
+        this.players = new ArrayList<>();
     }
 
     public void addItem(Artefacts item) {
@@ -38,18 +41,19 @@ public class Location extends GameEntity {
     }
 
     // 添加角色
-    public void addCharacter(Character character) {
-        this.characters.add(character);
+    public void addCharacter(Characters gameCharacter) {
+        this.characters.add(gameCharacter);
     }
 
     // 移除角色
-    public void removeCharacter(Character character) {
-        this.characters.remove(character);
+    public void removeCharacter(Character gameCharacter) {
+        this.characters.remove(gameCharacter);
     }
 
     // 添加路径
-    public void addPath(Path path) {
-        this.paths.add(path);
+    public void addPath(String toLocation) {
+        Path newPath = new Path(this.name, toLocation);
+        this.paths.add(newPath);
     }
 
     // 移除路径
@@ -68,7 +72,7 @@ public class Location extends GameEntity {
     }
 
     // 获取地点中的角色列表
-    public List<Character> getCharacters() {
+    public List<Characters> getCharacters() {
         return characters;
     }
 
