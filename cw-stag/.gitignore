@@ -1,0 +1,5 @@
+*.class
+.idea
+.DS_Store
+databases
+cw-stag/libs
