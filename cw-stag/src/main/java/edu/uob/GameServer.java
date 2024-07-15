@@ -40,7 +40,21 @@ public final class GameServer {
     */
     public String handleCommand(String command) {
         // TODO implement your server logic here
-        return "";
+        switch(command.toLowerCase()){
+            case "get":
+                return "Get Command Detected";
+            case "drop":
+                return "Drop Command Detected";
+            case "goto":
+                return "Goto Command Detected";
+            case "look":
+                return "Look Command Detected";
+            case "inventory":
+            case "inv":
+                return "Inventory Command Detected";
+            default:
+                return "Unknown command ! ! ! ";
+        }
     }
 
     /**
