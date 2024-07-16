@@ -3,12 +3,12 @@ package edu.uob.GameEntities;
 
 import edu.uob.GameEntity;
 
-import java.sql.Array;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Location extends GameEntity {
-    private List<Location> paths;
+    private List<String> paths;
     private List<Character> characters;
     private List<Artefact> artefacts;
     private List<Furniture> furniture;
@@ -22,12 +22,21 @@ public class Location extends GameEntity {
     }
 
     //其他特定于Location的方法和assets
-    public void addPathToLocation(Location location){
-        paths.add(location);
+    public void addPathToLocation(String locationName){
+        paths.add(locationName);
+    }
+
+    public void findAccessibleLocation(List<PathPair> pathsInEntitiesFile){
+        List<String> accessibleLocations = new ArrayList<>();
+        for (PathPair path : pathsInEntitiesFile) {
+            if (path.getStartLocationFromPath().equals(this.getName())) {
+                paths.add(path.getEndLocationFromPath());
+            }
+        }
     }
 
     public boolean checkPathAccessibility(Location location){
-        return paths.contains(location);
+        return paths.contains(location.getName());
     }
 
     public void addCharacterToLocation(Character character){
@@ -42,7 +51,7 @@ public class Location extends GameEntity {
         furniture.add(furnitureItem);
     }
 
-    public List<Location> getPaths(){
+    public List<String> getPaths(){
         return paths;
     }
 
