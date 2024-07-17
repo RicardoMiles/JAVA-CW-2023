@@ -20,8 +20,8 @@ import edu.uob.GameEntities.Character;
 public class DotReader {
     public String startingLocation;
 
-    public List<Location> locationsInEntitiesfile;
-    public List<PathPair> pathsInEntitiesfile;
+    public List<Location> locationsInEntitiesfile = new ArrayList<>();
+    public ArrayList<PathPair> pathsInEntitiesfile = new ArrayList<>();
     public HashMap<String,Location> nameMappingLocationList = new HashMap<>();
 
     public DotReader(File entitiesFile) throws ParseException, FileNotFoundException {
@@ -56,8 +56,8 @@ public class DotReader {
 
             // Creating new location by the info collected
             Location currentLocation = new Location(currentLocationName,currentLocationDescription);
-            System.out.println("Read locations currently: "+ currentLocationName);
-            System.out.println("Location's description is: "+currentLocationDescription);
+            // System.out.println("Read locations currently: "+ currentLocationName);
+            // System.out.println("Location's description is: "+currentLocationDescription);
 
             // Recursively add entities into location
             ArrayList<Graph> entities = location.getSubgraphs();
@@ -104,16 +104,21 @@ public class DotReader {
 
         // Store the path pair into the pathlist
         for (Edge edge : paths){
-            Node sourceLocation = edge.getSource().getNode();
-            String sourceName = sourceLocation.getId().getId();
-            Node targetLocation = edge.getSource().getNode();
-            String targetName = targetLocation.getId().getId();
+//            Node sourceLocation = edge.getSource().getNode();
+//            String sourceName = sourceLocation.getId().getId();
+//            Node targetLocation = edge.getSource().getNode();
+//            String targetName = targetLocation.getId().getId();
+            Node fromLocation = edge.getSource().getNode();
+            String sourceName = fromLocation.getId().getId();
+            Node toLocation = edge.getTarget().getNode();
+            String targetName = toLocation.getId().getId();
             pathsInEntitiesfile.add(new PathPair(sourceName,targetName));
         }
+//        System.out.println(pathsInEntitiesfile.toString());
+        transPairToPath(pathsInEntitiesfile);
     }
 
-    public ArrayList<String> transPairToPath(ArrayList<PathPair> pathsPairs){
-        ArrayList<String> qualifiedPath = new ArrayList<>();
+    public void transPairToPath(ArrayList<PathPair> pathsPairs){
         for (PathPair pathPair : pathsPairs) {
             String startLocation = pathPair.getStartLocationFromPath();
             String endLocation = pathPair.getEndLocationFromPath();
@@ -122,11 +127,8 @@ public class DotReader {
                 // Get the Location object and add the end location to its paths
                 Location location = nameMappingLocationList.get(startLocation);
                 location.addPathToLocation(endLocation);
-                // Optionally, add the formatted path to qualifiedPath list
-                qualifiedPath.add(startLocation + " -> " + endLocation);
             }
         }
-        return qualifiedPath;
     }
 
 //    public List<Location> getLocationList() {
