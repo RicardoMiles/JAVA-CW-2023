@@ -83,16 +83,19 @@ public class DotReader {
                         String furDescription = node.getAttribute("description");
                         Furniture currFurniture = new Furniture(furName,furDescription);
                         location.addFurniture(currFurniture);
+                        break;
                     case "artefacts":
                         String artefactName = node.getId().getId();
                         String artefactDescription = node.getAttribute("description");
                         Artefact currArtefact = new Artefact(artefactName,artefactDescription);
                         location.addArtefact(currArtefact);
+                        break;
                     case "characters":
                         String characterName = node.getId().getId();
                         String characterDescription = node.getAttribute("description");
                         Character currCharacter = new Character(characterName,characterDescription);
                         location.addCharacterToLocation(currCharacter);
+                        break;
                 }
             }
         }
@@ -118,7 +121,7 @@ public class DotReader {
         transPairToPath(pathsInEntitiesfile);
     }
 
-    public void transPairToPath(ArrayList<PathPair> pathsPairs){
+    private void transPairToPath(ArrayList<PathPair> pathsPairs){
         for (PathPair pathPair : pathsPairs) {
             String startLocation = pathPair.getStartLocationFromPath();
             String endLocation = pathPair.getEndLocationFromPath();
