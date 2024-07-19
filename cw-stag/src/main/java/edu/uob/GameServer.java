@@ -1,6 +1,8 @@
 package edu.uob;
 
 import com.alexmerz.graphviz.ParseException;
+import edu.uob.GameEngine.CommandNormalizer;
+import edu.uob.GameEngine.GameState;
 import edu.uob.GameEntities.Location;
 import edu.uob.GameEntities.PathPair;
 import edu.uob.configFileReader.DotReader;
@@ -15,6 +17,7 @@ import java.util.List;
 public final class GameServer {
 
     private static final char END_OF_TRANSMISSION = 4;
+    public GameState currGameState;
 
     public static void main(String[] args) throws IOException, ParseException {
         File entitiesFile = Paths.get("config" + File.separator + "basic-entities.dot").toAbsolutePath().toFile();
@@ -35,6 +38,8 @@ public final class GameServer {
         DotReader dotReader = new DotReader(entitiesFile);
         List<Location> locations = dotReader.locationsInEntitiesfile;
         String startingLocation = dotReader.startingLocation;
+        this.currGameState = new GameState(startingLocation);
+        currGameState.loadGameMap(locations);
 //        for (Location loc : locations) {
 //            System.out.println("Location: " + loc.getName());
 //            List<String> paths = loc.getPaths(); // 假设 Location 类有 getPaths 方法返回 List<String>
@@ -54,7 +59,10 @@ public final class GameServer {
     */
     public String handleCommand(String command) {
         // TODO implement your server logic here
-        switch(command.toLowerCase()){
+        CommandNormalizer cmdHandler =  new CommandNormalizer(command);
+        String matchedCommand = cmdHandler.inputMatchedCommand();
+        currGameState.playerLogin(cmdHandler.inputPlayerName());
+        switch(matchedCommand.toLowerCase()){
             case "get":
                 return "Get Command Detected";
             case "drop":
