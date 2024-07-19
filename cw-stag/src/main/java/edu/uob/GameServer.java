@@ -60,8 +60,8 @@ public final class GameServer {
     public String handleCommand(String command) {
         // TODO implement your server logic here
         CommandNormalizer cmdHandler =  new CommandNormalizer(command);
-        String matchedCommand = cmdHandler.inputMatchedCommand();
-        currGameState.playerLogin(cmdHandler.inputPlayerName());
+        String matchedCommand = cmdHandler.outputMatchedCommand();
+        currGameState.playerLogin(cmdHandler.outputPlayerName());
         switch(matchedCommand.toLowerCase()){
             case "get":
                 return "Get Command Detected";

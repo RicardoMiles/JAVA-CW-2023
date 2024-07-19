@@ -72,11 +72,11 @@ public class CommandNormalizer {
         return matchedCommand;
     }
 
-    public String inputPlayerName() {
+    public String outputPlayerName() {
         return playerName;
     }
 
-    public String inputMatchedCommand() {
+    public String outputMatchedCommand() {
         return matchedCommand;
     }
 
