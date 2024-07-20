@@ -66,4 +66,28 @@ public class Location extends GameEntity {
     public List<Furniture> getFurniture(){
         return furniture;
     }
+
+    public String getAccessibleLocations() {
+        StringBuilder accessibleLocations = new StringBuilder("You can access these locations:");
+        for (String path : paths) {
+            accessibleLocations.append("\n").append(path);
+        }
+        return accessibleLocations.toString();
+    }
+
+    public String getArtefactsList() {
+        StringBuilder artefactsList = new StringBuilder("You can see artefacts:");
+        for (Artefact artefact : artefacts) {
+            artefactsList.append("\n").append(artefact.getName());
+        }
+        return artefactsList.toString();
+    }
+
+    public String getFurnitureList(){
+        StringBuilder furnitureList = new StringBuilder("You can see furniture:");
+        for (Furniture furniture : furniture) {
+            furnitureList.append("\n").append(furniture.getName());
+        }
+        return furnitureList.toString();
+    }
 }

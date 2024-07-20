@@ -56,7 +56,11 @@ public class GameState {
         for (Location location : currGameMap.values()) {
             for (Character player : location.getCharacters()) {
                 if (player.getName().equals(playerName)) {
-                    return location.getDescription();
+                    String locationInfo = "You are in "+location.getName() + " - " + location.getDescription();
+                    locationInfo += "\n\n" + location.getArtefactsList();
+                    locationInfo += "\n\n" + location.getFurnitureList();
+                    locationInfo += "\n\n" + location.getAccessibleLocations();
+                    return locationInfo;
                 }
             }
         }
