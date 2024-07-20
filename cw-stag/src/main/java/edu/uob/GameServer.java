@@ -12,12 +12,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public final class GameServer {
 
     private static final char END_OF_TRANSMISSION = 4;
     public GameState currGameState;
+
 
     public static void main(String[] args) throws IOException, ParseException {
         File entitiesFile = Paths.get("config" + File.separator + "basic-entities.dot").toAbsolutePath().toFile();
@@ -35,19 +37,13 @@ public final class GameServer {
     */
     public GameServer(File entitiesFile, File actionsFile) throws FileNotFoundException, ParseException {
         // TODO implement your server logic here
+        // Read the entitiesFile into DotReader and export to GameState
         DotReader dotReader = new DotReader(entitiesFile);
         List<Location> locations = dotReader.locationsInEntitiesfile;
         String startingLocation = dotReader.startingLocation;
+        HashMap<String,Location> currGameMap = dotReader.getGameMap();
         this.currGameState = new GameState(startingLocation);
-        currGameState.loadGameMap(locations);
-//        for (Location loc : locations) {
-//            System.out.println("Location: " + loc.getName());
-//            List<String> paths = loc.getPaths(); // 假设 Location 类有 getPaths 方法返回 List<String>
-//            System.out.println("Path: ");
-//            for (String path : paths) {
-//                System.out.println(path);
-//            }
-//        }
+        currGameState.loadGameMap(currGameMap);
 
     }
 
@@ -61,7 +57,8 @@ public final class GameServer {
         // TODO implement your server logic here
         CommandNormalizer cmdHandler =  new CommandNormalizer(command);
         String matchedCommand = cmdHandler.outputMatchedCommand();
-        currGameState.playerLogin(cmdHandler.outputPlayerName());
+        String currPlayer = cmdHandler.outputPlayerName();
+        currGameState.loadPlayer(currPlayer);
         switch(matchedCommand.toLowerCase()){
             case "get":
                 return "Get Command Detected";
@@ -70,10 +67,16 @@ public final class GameServer {
             case "goto":
                 return "Goto Command Detected";
             case "look":
-                return "Look Command Detected";
+                return currGameState.findLocationByPlayerName(currPlayer);
             case "inventory":
             case "inv":
                 return "Inventory Command Detected";
+            case "health":
+                int healthValue = currGameState.getPlayerHealth(currPlayer);
+                String convertedHealth = Integer.toString(healthValue);
+                return convertedHealth;
+            case "Conflicted unsupported multiple command":
+                return "there is more than one valid action possible - which one do you want to perform ?";
             default:
                 return "Unknown command ! ! ! ";
         }

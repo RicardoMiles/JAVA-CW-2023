@@ -8,7 +8,14 @@ public class CommandNormalizer {
     private String matchedCommand;
     private String playerName;
 
+    private List<String> flexibleCommands; // Flexible commands list
+
     public CommandNormalizer(String incomingCommand) {
+        this.flexibleCommands = new ArrayList<>();
+        // Preprocessing ： adapt to TASK 8 Command Flexibility
+        incomingCommand = incomingCommand.toLowerCase();
+
+
         // 步骤 1：处理第一个“:”之前的内容
         this.playerName = "";
         int colonIndex = incomingCommand.indexOf(':');
@@ -38,7 +45,7 @@ public class CommandNormalizer {
 
     public String findMatchedCommand(List<String> commandParts) {
         // 预定义的字符串列表
-        List<String> predefinedCommands = List.of("get", "drop", "goto", "look", "inventory", "inv");
+        List<String> predefinedCommands = List.of("get", "drop", "goto", "look", "inventory", "inv", "health");
 
         // 比对命令部分
         String matchedCommand = null;

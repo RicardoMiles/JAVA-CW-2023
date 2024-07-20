@@ -9,7 +9,7 @@ public class Player extends Character{
     private int health;
     private Set<GameEntity> inventory;
 
-    public Player(String name, String description, int health){
+    public Player(String name, String description){
         super(name,description);
         this.health = 3;
         this.inventory = new HashSet<>();
@@ -27,5 +27,25 @@ public class Player extends Character{
         inventory.remove(inventoryItem);
     }
 
-    //可以添加其他特定于 Player的方法和assets
+    // Support for health command and feature
+    public int getHealth() {
+        return health;
+    }
+
+    public void increaseHealth(int increment) {
+        if (health < 3) {
+            health += increment;
+            if (health > 3) {
+                health = 3;
+            }
+        }
+    }
+
+    public void decreaseHealth(int decrement) {
+        health -= decrement;
+        if (health < 0) {
+            health = 0;
+        }
+    }
+
 }

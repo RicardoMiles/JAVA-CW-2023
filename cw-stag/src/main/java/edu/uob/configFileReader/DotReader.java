@@ -134,6 +134,10 @@ public class DotReader {
         }
     }
 
+    public HashMap<String, Location> getGameMap() {
+        return nameMappingLocationList;
+    }
+
 //    public List<Location> getLocationList() {
 //        return this.locationsInEntitiesfile;
 //    }

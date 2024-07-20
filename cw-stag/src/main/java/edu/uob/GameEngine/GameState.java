@@ -1,5 +1,6 @@
 package edu.uob.GameEngine;
 
+import edu.uob.GameEntities.Character;
 import edu.uob.GameEntities.Location;
 import edu.uob.GameEntities.Player;
 
@@ -10,31 +11,60 @@ import java.util.List;
 
 public class GameState {
     private String startingLocation;
-    private List<Location> gameMap;
+    private HashMap<String,Location> currGameMap;
     private HashMap<String, HashSet<GameAction>> gameActionsList;
-    private List<Player> playersList;
+    private HashMap<String, Player> playersList;
 
 
     public GameState(String startingLocation){
-        this.gameMap = new ArrayList<>();
+        this.currGameMap = new HashMap<String,Location>();
         this.startingLocation = startingLocation;
         this.gameActionsList = new HashMap<>();
-        this.playersList = new ArrayList<>();
+        this.playersList = new HashMap<String,Player>();
     }
 
-    public void loadGameMap(List<Location> locationsList){
-        this.gameMap = locationsList;
+    public void loadGameMap(HashMap<String,Location> gameMap){
+        this.currGameMap = gameMap;
+    }
+
+    public void loadPlayer(String playerName) {
+        if (playersList.containsKey(playerName)) {
+            System.out.println("Player Exist ! ! ! ");
+        } else {
+            Player newPlayer = new Player(playerName, "User controlled player");
+            playersList.put(playerName, newPlayer);
+            // Add the new player to the starting location's characters list
+            Location startingLoc = currGameMap.get(startingLocation);
+            if (startingLoc != null) {
+                startingLoc.addCharacterToLocation(newPlayer);
+            } else {
+                System.out.println("Starting location not found in the game map!");
+            }
+        }
+    }
+
+    public int getPlayerHealth(String playerName) {
+        Player player = playersList.get(playerName);
+        if (player != null) {
+            return player.getHealth();
+        } else {
+            return 10086;
+        }
+    }
+
+    public String findLocationByPlayerName(String playerName) {
+        for (Location location : currGameMap.values()) {
+            for (Character player : location.getCharacters()) {
+                if (player.getName().equals(playerName)) {
+                    return location.getDescription();
+                }
+            }
+        }
+        return "Login location not found for player: " + playerName;
     }
 
     public void loadGameActions(){
         this.gameActionsList = new HashMap<>();
-    }
-
-    public void playerLogin(String playerName){
-        // 检查传进来的玩家名字是否已经存在，是否是当前玩家
-
-        // 是的话，初始化并添加到玩家列表进行维护
-        // 不是的话，就啥也不做
     }
 
 }
