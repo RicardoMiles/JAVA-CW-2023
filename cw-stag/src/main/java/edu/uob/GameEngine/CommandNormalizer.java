@@ -1,6 +1,9 @@
 package edu.uob.GameEngine;
 
+import edu.uob.GameEntities.Location;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -10,8 +13,11 @@ public class CommandNormalizer {
 
     private List<String> flexibleCommands; // Flexible commands list
 
+    private HashMap<String, Location> currGameMap; // Current game map
+
     public CommandNormalizer(String incomingCommand) {
         this.flexibleCommands = new ArrayList<>();
+        this.currGameMap = new HashMap<>();
         // Preprocessing ： adapt to TASK 8 Command Flexibility
         incomingCommand = incomingCommand.toLowerCase();
 
@@ -76,6 +82,11 @@ public class CommandNormalizer {
         // 输出匹配结果
         System.out.println("Matched Command: " + matchedCommand);
 
+        switch(matchedCommand){
+            case "look":
+
+        }
+
         return matchedCommand;
     }
 
@@ -85,6 +96,16 @@ public class CommandNormalizer {
 
     public String outputMatchedCommand() {
         return matchedCommand;
+    }
+
+    public String findGotoTarget(List<String> commandParts) {
+        currGameMap.
+        for (String commandPart : commandParts) {
+            if (currGameMap.containsKey(commandPart)) {
+                return currGameMap.get(commandPart).getName();
+            }
+        }
+        return "Warning: Location could not be accessed";
     }
 
 }
