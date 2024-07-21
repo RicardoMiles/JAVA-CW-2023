@@ -1,5 +1,6 @@
 package edu.uob.GameEngine;
 
+import edu.uob.GameEntities.Artefact;
 import edu.uob.GameEntities.Location;
 
 import java.util.ArrayList;
@@ -84,10 +85,10 @@ public class CommandNormalizer {
         // 输出匹配结果
         System.out.println("Matched Command: " + matchedCommand);
 
-        switch(matchedCommand){
-            case "look":
-
-        }
+//        switch(matchedCommand){
+//            case "get":
+//                commandParts;
+//        }
 
         return matchedCommand;
     }
@@ -111,6 +112,30 @@ public class CommandNormalizer {
             return currGameMap.get(matchedLocations.get(0)).getName();
         } else {
             return "Invalid goto targeting location";
+        }
+    }
+
+    public String checkItemsToBeTaken(){
+        List<String> matchedArtefacts = new ArrayList<>();
+        for (String commandPart : commandParts){
+            for (Location location : currGameMap.values()) {
+                List<Artefact> artefacts = location.getArtefacts();
+                for (Artefact artefact : artefacts) {
+                    if(artefact.getName().equals(commandPart)){
+                        matchedArtefacts.add(commandPart);
+                    }
+                }
+            }
+        }
+        if (matchedArtefacts.size() == 1){
+            System.out.println("Cool! Only One Valid item");
+            return matchedArtefacts.get(0);
+        } else if(matchedArtefacts.size() >= 2){
+            System.out.println("There is more than one thing you can get here - which one do you want" + System.lineSeparator());
+            return ("MultipleItem");
+        } else{
+            System.out.println("No valid item to pick up." + System.lineSeparator());
+            return ("NoItem");
         }
     }
 

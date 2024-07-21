@@ -62,7 +62,15 @@ public final class GameServer {
         String matchedCommand = cmdHandler.outputMatchedCommand();
         switch(matchedCommand.toLowerCase()){
             case "get":
-                return "Get Command Detected";
+                String itemToBePickedUp = cmdHandler.checkItemsToBeTaken();
+                switch(itemToBePickedUp){
+                    case "NoItem":
+                        return "No valid item to pick up." + System.lineSeparator();
+                    case "MultipleItem":
+                        return "There is more than one thing you can get here - which one do you want" + System.lineSeparator();
+                    default:
+                        return currGameState.getCMD(itemToBePickedUp,currPlayer);
+                }
             case "drop":
                 return "Drop Command Detected";
             case "goto":
@@ -70,15 +78,15 @@ public final class GameServer {
                 boolean accessibleOrNot = currGameState.checkLocationAccessiblity(currPlayer,targetLocation);
                 if(accessibleOrNot){
                     currGameState.gotoCMD(currPlayer,targetLocation);
-                    return "You went to " + targetLocation;
+                    return "You went to " + targetLocation + "." + System.lineSeparator();
                 }else{
-                    return "Goto Command Detected";
+                    return "Goto Command Detected, but target location is invalid." +System.lineSeparator();
                 }
             case "look":
-                return currGameState.getCurrentLocationInfo(currPlayer);
+                return currGameState.lookCMD(currPlayer);
             case "inventory":
             case "inv":
-                return "Inventory Command Detected";
+                return currGameState.inventoryCMD(currPlayer);
             case "health":
                 int healthValue = currGameState.getPlayerHealth(currPlayer);
                 String convertedHealth = Integer.toString(healthValue);

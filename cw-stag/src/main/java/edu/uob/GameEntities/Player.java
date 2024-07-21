@@ -7,7 +7,7 @@ import java.util.Set;
 
 public class Player extends Character{
     private int health;
-    private Set<GameEntity> inventory;
+    private Set<Artefact> inventory;
 
     public Player(String name, String description){
         super(name,description);
@@ -15,15 +15,15 @@ public class Player extends Character{
         this.inventory = new HashSet<>();
     }
 
-    public Set<GameEntity> getInventory() {
+    public Set<Artefact> getInventory() {
         return inventory;
     }
 
-    public void addToInventory(GameEntity inventoryItem) {
+    public void addToInventory(Artefact inventoryItem) {
         inventory.add(inventoryItem);
     }
 
-    public void removeFromInventory(GameEntity inventoryItem) {
+    public void removeFromInventory(Artefact inventoryItem) {
         inventory.remove(inventoryItem);
     }
 

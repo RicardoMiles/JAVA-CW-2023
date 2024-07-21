@@ -76,23 +76,48 @@ public class Location extends GameEntity {
     }
 
     public String getArtefactsList() {
+        if (artefacts.isEmpty()) {
+            return ""; // Artefacts list is empty, return an empty string
+        }
         StringBuilder artefactsList = new StringBuilder("You can see artefacts:");
         for (Artefact artefact : artefacts) {
-            artefactsList.append("\n").append(artefact.getName()).append(" - ").append(artefact.getDescription());
+            artefactsList.append(System.lineSeparator()).append(artefact.getName()).append(" - ").append(artefact.getDescription());
         }
         return artefactsList.toString();
     }
 
     public String getFurnitureList(){
+        if (furniture.isEmpty()) {
+            return ""; // Furniture list is empty, return an empty string
+        }
         StringBuilder furnitureList = new StringBuilder("You can see furniture:");
         for (Furniture furniture : furniture) {
-            furnitureList.append("\n").append(furniture.getName()).append(" - ").append(furniture.getDescription());
+            furnitureList.append(System.lineSeparator()).append(furniture.getName()).append(" - ").append(furniture.getDescription());
         }
         return furnitureList.toString();
     }
 
+
     public void removeCharacterFromLocation(Character character) {
         characters.remove(character);
+    }
+
+    public boolean removeArtefactByName(String artefactName) {
+        for (Artefact artefact : artefacts) {
+            if (artefact.getName().equals(artefactName)) {
+                return artefacts.remove(artefact);
+            }
+        }
+        return false;
+    }
+
+    public Artefact getArtefactByName(String artefactName) {
+        for (Artefact artefact : artefacts) {
+            if (artefact.getName().equals(artefactName)) {
+                return artefact;
+            }
+        }
+        return null;
     }
 
 }
