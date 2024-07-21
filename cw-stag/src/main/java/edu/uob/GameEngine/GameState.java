@@ -52,7 +52,7 @@ public class GameState {
         }
     }
 
-    public String findLocationByPlayerName(String playerName) {
+    public String getCurrentLocationInfo(String playerName) {
         for (Location location : currGameMap.values()) {
             for (Character player : location.getCharacters()) {
                 if (player.getName().equals(playerName)) {
@@ -67,8 +67,54 @@ public class GameState {
         return "Login location not found for player: " + playerName;
     }
 
+    public boolean checkLocationAccessiblity(String playerName, String targetLocation) {
+        for (Location location : currGameMap.values()) {
+            for (Character player : location.getCharacters()) {
+                if (player.getName().equals(playerName)) {
+                    return location.getPaths().contains(targetLocation);
+                }
+            }
+        }
+        return false;
+    }
+
     public void loadGameActions(){
         this.gameActionsList = new HashMap<>();
+    }
+
+    public HashMap<String, Location> getCurrGameMap() {
+        return currGameMap;
+    }
+
+    public void gotoCMD(String playerName, String targetLocation){
+        Location currentLocation = null;
+        Player playerToMove = null;
+
+        for (Location location : currGameMap.values()) {
+            for (Character player : location.getCharacters()) {
+                if (player.getName().equals(playerName)) {
+                    currentLocation = location;
+                    playerToMove = (Player) player;
+                    break;
+                }
+            }
+            if (currentLocation != null){
+                break;
+            }
+        }
+
+        if (currentLocation != null && playerToMove != null) {
+            Location targetLoc = currGameMap.get(targetLocation);
+            if (targetLoc != null) {
+                currentLocation.removeCharacterFromLocation(playerToMove);
+                targetLoc.addCharacterToLocation(playerToMove);
+                System.out.println(playerName + " has been moved to " + targetLocation);
+            } else {
+                System.out.println("Target location not found in the game map!");
+            }
+        } else {
+            System.out.println("Player not found in any location!");
+        }
     }
 
 

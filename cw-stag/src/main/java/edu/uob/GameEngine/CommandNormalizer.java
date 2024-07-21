@@ -15,6 +15,8 @@ public class CommandNormalizer {
 
     private HashMap<String, Location> currGameMap; // Current game map
 
+    public List<String> commandParts ;
+
     public CommandNormalizer(String incomingCommand) {
         this.flexibleCommands = new ArrayList<>();
         this.currGameMap = new HashMap<>();
@@ -36,7 +38,7 @@ public class CommandNormalizer {
         }
 
         // 使用空格分割字符串，并存储到列表中
-        List<String> commandParts = new ArrayList<>();
+        this.commandParts = new ArrayList<>();
         String[] parts = remainingCommand.split("\\s+");
         for (String part : parts) {
             commandParts.add(part);
@@ -98,14 +100,22 @@ public class CommandNormalizer {
         return matchedCommand;
     }
 
-    public String findGotoTarget(List<String> commandParts) {
-        currGameMap.
+    public String findGotoTarget() {
+        List<String> matchedLocations = new ArrayList<>();
         for (String commandPart : commandParts) {
             if (currGameMap.containsKey(commandPart)) {
-                return currGameMap.get(commandPart).getName();
+                matchedLocations.add(commandPart);
             }
         }
-        return "Warning: Location could not be accessed";
+        if (matchedLocations.size() == 1) {
+            return currGameMap.get(matchedLocations.get(0)).getName();
+        } else {
+            return "Invalid goto targeting location";
+        }
+    }
+
+    public void importGameMap(HashMap<String, Location> importedGameMap){
+        this.currGameMap = importedGameMap;
     }
 
 }

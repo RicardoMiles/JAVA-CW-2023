@@ -56,18 +56,26 @@ public final class GameServer {
     public String handleCommand(String command) {
         // TODO implement your server logic here
         CommandNormalizer cmdHandler =  new CommandNormalizer(command);
-        String matchedCommand = cmdHandler.outputMatchedCommand();
         String currPlayer = cmdHandler.outputPlayerName();
         currGameState.loadPlayer(currPlayer);
+        cmdHandler.importGameMap(currGameState.getCurrGameMap());
+        String matchedCommand = cmdHandler.outputMatchedCommand();
         switch(matchedCommand.toLowerCase()){
             case "get":
                 return "Get Command Detected";
             case "drop":
                 return "Drop Command Detected";
             case "goto":
-                return "Goto Command Detected";
+                String targetLocation = cmdHandler.findGotoTarget();
+                boolean accessibleOrNot = currGameState.checkLocationAccessiblity(currPlayer,targetLocation);
+                if(accessibleOrNot){
+                    currGameState.gotoCMD(currPlayer,targetLocation);
+                    return "You went to " + targetLocation;
+                }else{
+                    return "Goto Command Detected";
+                }
             case "look":
-                return currGameState.findLocationByPlayerName(currPlayer);
+                return currGameState.getCurrentLocationInfo(currPlayer);
             case "inventory":
             case "inv":
                 return "Inventory Command Detected";
