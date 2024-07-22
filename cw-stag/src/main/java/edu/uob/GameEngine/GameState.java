@@ -128,7 +128,8 @@ public class GameState {
         }
 
         // If player exist some place
-        if (currentLocation != null && playerToCheck != null) {
+        // if (currentLocation != null && playerToCheck != null) {
+        if (currentLocation != null) {
             // Get items in inventory
             inventoryOfPlayer= playerToCheck.getInventory();
             if (inventoryOfPlayer.isEmpty()) {
@@ -172,10 +173,33 @@ public class GameState {
             }
         } else {
             System.out.println("Player not found in any location!");
+            return "Player not found in any location!";
         }
-        return "You picked up a " + itemName + System.lineSeparator();
     }
 
+    public String dropCMD(String itemName,String playerName){
+        Location currentLocation = locatePlayer(playerName);
+        if (currentLocation != null) {
+            Player playerToDropItem = playersList.get(playerName);
+            if(itemName == null){
+                return "ItemName can not be read" + System.lineSeparator();
+            }else{
+                Artefact itemToBeMoved = playerToDropItem.getArtefactByName(itemName);
+                if (itemToBeMoved == null){
+                    return "Copy item from inventory fail. "+ System.lineSeparator();
+                }else{
+                    currentLocation.addArtefact(itemToBeMoved);
+                    if(playerToDropItem.removeFromInventoryByName(itemName)){
+                        return "You dropped a " + itemName + "." + System.lineSeparator();
+                    }else{
+                        return "Delete operation after copy from inventory fail." + System.lineSeparator();
+                    }
+                }
+            }
+        } else {
+            return "Player not found in any location!";
+        }
+    }
     public Location locatePlayer(String playerName) {
         for (Location location : currGameMap.values()) {
             for (Character player : location.getCharacters()) {
@@ -186,5 +210,4 @@ public class GameState {
         }
         return null;
     }
-
 }

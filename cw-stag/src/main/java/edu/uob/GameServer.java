@@ -68,11 +68,23 @@ public final class GameServer {
                         return "No valid item to pick up." + System.lineSeparator();
                     case "MultipleItem":
                         return "There is more than one thing you can get here - which one do you want" + System.lineSeparator();
+                    case "Player not found in any location!":
+                        return "Player not found in any location!"+ System.lineSeparator();
                     default:
                         return currGameState.getCMD(itemToBePickedUp,currPlayer);
                 }
             case "drop":
-                return "Drop Command Detected";
+                String itemToDrop = cmdHandler.checkItemToDrop(currPlayer);
+                switch(itemToDrop){
+                    case "NoItem":
+                        return "No valid item to drop." + System.lineSeparator();
+                    case "MultipleItem":
+                        return "There is more than one thing you can drop here - which one do you want" + System.lineSeparator();
+                    case "Player not found in any location!":
+                        return "Player not found in any location!"+ System.lineSeparator();
+                    default:
+                        return currGameState.dropCMD(itemToDrop,currPlayer);
+                }
             case "goto":
                 String targetLocation = cmdHandler.findGotoTarget();
                 boolean accessibleOrNot = currGameState.checkLocationAccessiblity(currPlayer,targetLocation);

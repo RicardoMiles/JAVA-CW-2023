@@ -27,6 +27,25 @@ public class Player extends Character{
         inventory.remove(inventoryItem);
     }
 
+    public boolean removeFromInventoryByName(String artefactName) {
+        for (Artefact artefact : inventory) {
+            if (artefact.getName().equals(artefactName)) {
+                inventory.remove(artefact);
+                return true; // Artefact found and removed
+            }
+        }
+        return false; // Artefact not found
+    }
+
+    public Artefact getArtefactByName(String name) {
+        for (Artefact artefact : inventory) {
+            if (artefact.getName().equals(name)) {
+                return artefact; // Artefact found
+            }
+        }
+        return null; // Artefact not found
+    }
+
     // Support for health command and feature
     public int getHealth() {
         return health;

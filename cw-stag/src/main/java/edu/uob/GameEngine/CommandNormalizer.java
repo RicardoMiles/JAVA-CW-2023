@@ -2,10 +2,12 @@ package edu.uob.GameEngine;
 
 import edu.uob.GameEntities.Artefact;
 import edu.uob.GameEntities.Location;
+import edu.uob.GameEntities.Player;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 
 public class CommandNormalizer {
@@ -46,7 +48,6 @@ public class CommandNormalizer {
         }
 
         // 输出测试
-        System.out.println("Player Name: " + playerName);
         System.out.println("Command Parts: " + commandParts);
 
         this.matchedCommand = findMatchedCommand(commandParts);
@@ -139,8 +140,47 @@ public class CommandNormalizer {
         }
     }
 
+    public String checkItemToDrop(String playerName){
+        List<String> matchedArtefacts = new ArrayList<>();
+        Player playerToDropItem = findPlayerByName(playerName);
+
+        if (playerToDropItem != null) {
+            for (String commandPart : commandParts){
+                Set<Artefact> inventory = playerToDropItem.getInventory();
+                for (Artefact artefact : inventory) {
+                    if(artefact.getName().equals(commandPart)){
+                        matchedArtefacts.add(commandPart);
+                    }
+                }
+            }
+        } else {
+            return "Player not found in any location!" ;
+        }
+
+        if (matchedArtefacts.size() == 1){
+            System.out.println("Cool! Only One Valid item");
+            return matchedArtefacts.get(0);
+        } else if(matchedArtefacts.size() >= 2){
+            System.out.println("There is more than one thing you can get here - which one do you want" + System.lineSeparator());
+            return ("MultipleItem");
+        } else{
+            System.out.println("No valid item to pick up." + System.lineSeparator());
+            return ("NoItem");
+        }
+    }
+
     public void importGameMap(HashMap<String, Location> importedGameMap){
         this.currGameMap = importedGameMap;
+    }
+
+    public Player findPlayerByName(String playerName) {
+        for (Location location : currGameMap.values()) {
+            Player player = location.findPlayerByName(playerName);
+            if (player != null) {
+                return player;
+            }
+        }
+        return null;
     }
 
 }

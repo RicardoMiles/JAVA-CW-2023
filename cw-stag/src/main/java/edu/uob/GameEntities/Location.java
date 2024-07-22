@@ -120,4 +120,13 @@ public class Location extends GameEntity {
         return null;
     }
 
+    public Player findPlayerByName(String playerName) {
+        for (Character character : characters) {
+            if (character.getName().equals(playerName) && character instanceof Player) {
+                return (Player) character;
+            }
+        }
+        return null;
+    }
+
 }
