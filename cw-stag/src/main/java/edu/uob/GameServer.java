@@ -6,6 +6,7 @@ import edu.uob.GameEngine.GameState;
 import edu.uob.GameEntities.Location;
 import edu.uob.GameEntities.PathPair;
 import edu.uob.configFileReader.DotReader;
+import edu.uob.configFileReader.XmlReader;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -13,6 +14,7 @@ import java.net.Socket;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 public final class GameServer {
@@ -42,9 +44,12 @@ public final class GameServer {
         List<Location> locations = dotReader.locationsInEntitiesfile;
         String startingLocation = dotReader.startingLocation;
         HashMap<String,Location> currGameMap = dotReader.getGameMap();
+        // Read the actionsFile into XmlReader and export to GameState
+        XmlReader xmlReader = new XmlReader(actionsFile);
+        HashMap<String, HashSet<GameAction>> currGameActions = xmlReader.getGameActions();
         this.currGameState = new GameState(startingLocation);
         currGameState.loadGameMap(currGameMap);
-
+        currGameState.loadGameActions(currGameActions);
     }
 
     /**

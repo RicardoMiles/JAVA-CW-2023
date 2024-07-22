@@ -1,5 +1,6 @@
 package edu.uob.GameEngine;
 
+import edu.uob.GameAction;
 import edu.uob.GameEntities.Artefact;
 import edu.uob.GameEntities.Character;
 import edu.uob.GameEntities.Location;
@@ -11,19 +12,23 @@ import java.util.*;
 public class GameState {
     private String startingLocation;
     private HashMap<String,Location> currGameMap;
-    private HashMap<String, HashSet<GameAction>> gameActionsList;
+    private HashMap<String, HashSet<GameAction>> currGameActions;
     private HashMap<String, Player> playersList;
 
 
     public GameState(String startingLocation){
         this.currGameMap = new HashMap<String,Location>();
         this.startingLocation = startingLocation;
-        this.gameActionsList = new HashMap<>();
+        this.currGameActions = new HashMap<>();
         this.playersList = new HashMap<String,Player>();
     }
 
     public void loadGameMap(HashMap<String,Location> gameMap){
         this.currGameMap = gameMap;
+    }
+
+    public void loadGameActions(HashMap<String, HashSet<GameAction>> gameActionRules){
+        this.currGameActions = gameActionRules;
     }
 
     public void loadPlayer(String playerName) {
@@ -81,10 +86,6 @@ public class GameState {
             }
         }
         return false;
-    }
-
-    public void loadGameActions(){
-        this.gameActionsList = new HashMap<>();
     }
 
     public HashMap<String, Location> getCurrGameMap() {
