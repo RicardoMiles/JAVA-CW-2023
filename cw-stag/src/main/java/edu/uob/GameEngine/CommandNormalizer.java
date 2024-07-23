@@ -1,6 +1,7 @@
 package edu.uob.GameEngine;
 
 import edu.uob.GameEntities.Artefact;
+import edu.uob.GameEntities.Furniture;
 import edu.uob.GameEntities.Location;
 import edu.uob.GameEntities.Player;
 
@@ -23,9 +24,6 @@ public class CommandNormalizer {
     public CommandNormalizer(String incomingCommand, GameState currGameState) {
         this.flexibleCommands = new ArrayList<>(currGameState.getAllTriggerPhrases());
         this.currGameMap = new HashMap<>();
-        // Preprocessing ： adapt to TASK 8 Command Flexibility
-        incomingCommand = incomingCommand.toLowerCase();
-
 
         // 步骤 1：处理第一个“:”之前的内容
         this.playerName = "";
@@ -37,7 +35,8 @@ public class CommandNormalizer {
         // 步骤 2：处理第一个“:”之后的内容
         String remainingCommand = "";
         if (colonIndex != -1 && colonIndex + 1 < incomingCommand.length()) {
-            remainingCommand = incomingCommand.substring(colonIndex + 1).trim();
+            // Preprocessing ： adapt to TASK 8 Command Flexibility
+            remainingCommand = incomingCommand.substring(colonIndex + 1).trim().toLowerCase();
         }
 
         // 使用空格分割字符串，并存储到列表中
@@ -54,10 +53,10 @@ public class CommandNormalizer {
     }
 
     public String findMatchedCommand(List<String> commandParts) {
-        // 预定义的字符串列表
+        // Built-in commands
         List<String> predefinedCommands = List.of("get", "drop", "goto", "look", "inventory", "inv", "health");
 
-        // 比对命令部分
+        // Compare the segments of commands
         String matchedCommand = null;
         int matchCount = 0;
 
@@ -94,7 +93,7 @@ public class CommandNormalizer {
             matchedCommand = "No matched command";
         }
 
-        // 输出匹配结果
+        // Output the matched result
         System.out.println("Matched Command: " + matchedCommand);
 
         return matchedCommand;
@@ -191,6 +190,54 @@ public class CommandNormalizer {
 
     public List<String> getCommandParts() {
         return commandParts;
+    }
+
+    // Method to check for extraneous locations in the command
+    public boolean hasExtraneousLocationNames(Set<String> actionSubjects, Set<String> actionConsumed, Set<String> actionProduced) {
+        for (String part : commandParts) {
+            if (currGameMap.containsKey(part) && !actionSubjects.contains(part) && !actionConsumed.contains(part) && !actionProduced.contains(part)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Method to check for extraneous artefacts in the command
+    public boolean hasExtraneousArtefactNames(Set<String> actionSubjects, Set<String> actionConsumed, Set<String> actionProduced) {
+        for (String part : commandParts) {
+            boolean found = false;
+            for (Location location : currGameMap.values()) {
+                for (Artefact artefact : location.getArtefacts()) {
+                    if (artefact.getName().equals(part)) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (found && !actionSubjects.contains(part) && !actionConsumed.contains(part) && !actionProduced.contains(part)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Method to check for extraneous furniture in the command
+    public boolean hasExtraneousFurnitureNames(Set<String> actionSubjects, Set<String> actionConsumed, Set<String> actionProduced) {
+        for (String part : commandParts) {
+            boolean found = false;
+            for (Location location : currGameMap.values()) {
+                for (Furniture furniture : location.getFurniture()) {
+                    if (furniture.getName().equals(part)) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (found && !actionSubjects.contains(part) && !actionConsumed.contains(part) && !actionProduced.contains(part)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

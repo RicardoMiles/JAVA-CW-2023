@@ -62,9 +62,20 @@ public final class GameServer {
         currGameState.loadPlayer(currPlayer);
         cmdHandler.importGameMap(currGameState.getCurrGameMap());
         String matchedCommand = cmdHandler.outputMatchedCommand();
+        List<String> commandParts = cmdHandler.getCommandParts();
+        String currLocationName = currGameState.locatePlayer(currPlayer).getName();
+        boolean containExtraneousLocation = false;
+        for (String part : commandParts) {
+            if (!part.equals(currLocationName) && currGameState.getCurrGameMap().containsKey(part)) {
+                containExtraneousLocation = true; // Find locationName other than currLocationName
+            }
+        }
         switch(matchedCommand.toLowerCase()){
             case "get":
                 String itemToBePickedUp = cmdHandler.checkItemsToBeTaken();
+                if(containExtraneousLocation){
+                    return "Extraneous location in command. " + System.lineSeparator();
+                }
                 switch(itemToBePickedUp){
                     case "NoItem":
                         return "No valid item to pick up." + System.lineSeparator();
@@ -77,6 +88,9 @@ public final class GameServer {
                 }
             case "drop":
                 String itemToDrop = cmdHandler.checkItemToDrop(currPlayer);
+                if(containExtraneousLocation){
+                    return "Extraneous location in command. " + System.lineSeparator();
+                }
                 switch(itemToDrop){
                     case "NoItem":
                         return "No valid item to drop." + System.lineSeparator();
@@ -115,7 +129,6 @@ public final class GameServer {
                 if (!actions.isEmpty()) {
                     for (GameAction action : actions) {
                         Set<String> subjects = action.getSubjects();
-                        List<String> commandParts = cmdHandler.getCommandParts();
                         Set<String> commandEntities = new HashSet<>(commandParts);
                         commandEntities.retainAll(subjects);
 
