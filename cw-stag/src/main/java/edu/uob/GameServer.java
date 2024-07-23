@@ -130,6 +130,12 @@ public final class GameServer {
                             if (currGameState.checkPlayerAndLocationHaveAllEntities(currPlayer, subjects)) {
                                 // Execute the action for producing and consuming entities
                                 currGameState.performActionFromFiles(action, currPlayer);
+                                if (currGameState.getPlayerHealth(currPlayer) == 0) {
+                                    currGameState.dropAllItems(currPlayer);
+                                    currGameState.findPlayerByName(currPlayer).resetHealth();
+                                    currGameState.gotoCMD(currPlayer, currGameState.getStartingLocation());
+                                    return "you died and lost all of your items, you must return to the start of the game" + System.lineSeparator();
+                                }
                                 return action.getNarration() + System.lineSeparator();
                             } else {
                                 return "Player or Location missing required entities for action: " + System.lineSeparator();

@@ -67,4 +67,8 @@ public class Player extends Character{
         }
     }
 
+    public void resetHealth(){
+        health = 3;
+    }
+
 }
