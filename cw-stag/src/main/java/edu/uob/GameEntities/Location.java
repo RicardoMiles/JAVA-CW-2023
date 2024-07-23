@@ -129,4 +129,38 @@ public class Location extends GameEntity {
         return null;
     }
 
+    public String getCharactersList() {
+        if (characters.isEmpty()) {
+            return ""; // Characters list is empty, return an empty string
+        }
+        StringBuilder charactersList = new StringBuilder();
+        for (Character character : characters) {
+            if (!(character instanceof Player)) {
+                if (charactersList.length() == 0) {
+                    charactersList.append("You can see characters:");
+                }
+                charactersList.append(System.lineSeparator()).append(character.getName()).append(" - ").append(character.getDescription());
+            }
+        }
+        // If there is no character other than players, return ""
+        if (charactersList.length() == 0) {
+            return "";
+        }
+        return charactersList.toString();
+    }
+
+    public String getOtherPlayersList(String excludePlayerName) {
+        StringBuilder playersList = new StringBuilder();
+        for (Character character : characters) {
+            if (character instanceof Player && !character.getName().equals(excludePlayerName)) {
+                if (playersList.length() == 0) {
+                    playersList.append("You can see other players in the game:");
+                }
+                playersList.append(System.lineSeparator()).append(character.getName());
+            }
+        }
+        return playersList.toString();
+    }
+
+
 }

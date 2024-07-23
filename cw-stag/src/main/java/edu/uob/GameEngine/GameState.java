@@ -69,7 +69,15 @@ public class GameState {
             }else{
                 locationInfo += System.lineSeparator() + System.lineSeparator() + location.getFurnitureList();
             }
+            if (location.getCharactersList() == "") {
+                locationInfo += "";
+            }else{
+                locationInfo += System.lineSeparator() + System.lineSeparator() + location.getCharactersList();
+            }
             locationInfo += System.lineSeparator() + System.lineSeparator() + location.getAccessibleLocations() + System.lineSeparator();
+            if (!location.getOtherPlayersList(playerName).isEmpty()) {
+                locationInfo += System.lineSeparator() + location.getOtherPlayersList(playerName) + System.lineSeparator() ;
+            }
             return locationInfo;
         }
         return "Login location not found for player: " + playerName;
