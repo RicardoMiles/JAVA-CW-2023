@@ -125,12 +125,17 @@ public final class GameServer {
                         if (commandEntities.size() < 1) {
                             return "All subjects missing for action" + matchedCommand + System.lineSeparator();
                         }
-                        if (commandEntities.size() == subjects.size()) {
-                            return "至少subject个数是对的,需要结合当前玩家和Location进一步判断." + System.lineSeparator();
+                        if (commandEntities.size() <= subjects.size()) {
+                            // Further check for subjects
+                            if (currGameState.checkPlayerAndLocationHaveAllEntities(currPlayer, subjects)) {
+                                // Execute the action for producing and consuming entities
+                                currGameState.performActionFromFiles(action, currPlayer);
+                                return action.getNarration() + System.lineSeparator();
+                            } else {
+                                return "Player or Location missing required entities for action: " + System.lineSeparator();
+                            }
                         }
-                        if (commandEntities.size() < subjects.size()){
-                            return "缺了一个subject，需要结合当前玩家和Location进一步判断." + System.lineSeparator();
-                        }
+
 
                     }
                     return "Action performed: " + matchedCommand;

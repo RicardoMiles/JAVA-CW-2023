@@ -1,10 +1,8 @@
 package edu.uob.GameEngine;
 
 import edu.uob.GameAction;
-import edu.uob.GameEntities.Artefact;
+import edu.uob.GameEntities.*;
 import edu.uob.GameEntities.Character;
-import edu.uob.GameEntities.Location;
-import edu.uob.GameEntities.Player;
 import edu.uob.GameEntity;
 
 import java.util.*;
@@ -227,7 +225,7 @@ public class GameState {
         return currGameActions.getOrDefault(trigger, new HashSet<>());
     }
 
-    public boolean playerAndLocationHaveAllEntities(String playerName, Set<String> entities) {
+    public boolean checkPlayerAndLocationHaveAllEntities(String playerName, Set<String> entities) {
         Player player = playersList.get(playerName);
         if (player == null) {
             return false;
@@ -249,4 +247,68 @@ public class GameState {
 
         return combinedEntities.containsAll(entities);
     }
+
+    public void performActionFromFiles(GameAction action, String playerName) {
+        Set<String> consumedEntities = action.getConsumedEntities();
+        Set<String> producedEntities = action.getProducedEntities();
+
+        // Get player and current location
+        Player player = playersList.get(playerName);
+        Location location = locatePlayer(playerName);
+        Location storeroom = currGameMap.get("storeroom");
+
+        // Consuming entities
+        for (String entity : consumedEntities) {
+            if ("health".equals(entity)) {
+                player.decreaseHealth(1);
+            }else if (player.getInventory().stream().anyMatch(item -> item.getName().equals(entity))) {
+                Artefact item = player.getArtefactByName(entity);
+                player.removeFromInventory(item);
+                if (storeroom != null) {
+                    storeroom.addArtefact(item);
+                }
+            } else if (location.getArtefacts().stream().anyMatch(item -> item.getName().equals(entity))) {
+                Artefact item = location.getArtefactByName(entity);
+                location.removeArtefactByName(entity);
+                if (storeroom != null) {
+                    storeroom.addArtefact(item);
+                }
+            } else if (location.getFurniture().stream().anyMatch(furniture -> furniture.getName().equals(entity))) {
+                Furniture furnitureItem = location.getFurniture().stream().filter(furniture -> furniture.getName().equals(entity)).findFirst().orElse(null);
+                if (furnitureItem != null) {
+                    location.getFurniture().remove(furnitureItem);
+                }
+                if (storeroom != null) {
+                    storeroom.addFurniture(furnitureItem);
+                }
+            }
+        }
+
+        // Producing entities
+        for (String entity : producedEntities) {
+            if ("health".equals(entity)) {
+                player.increaseHealth(1);
+            } else if (storeroom != null) {
+                // Check and move Artefacts from storeroom
+                Artefact artefact = storeroom.getArtefactByName(entity);
+                if (artefact != null) {
+                    storeroom.removeArtefactByName(entity);
+                    location.addArtefact(artefact);
+                } else {
+                    // Check and move Furniture from storeroom
+                    Furniture furnitureItem = storeroom.getFurniture().stream().filter(furniture -> furniture.getName().equals(entity)).findFirst().orElse(null);
+                    if (furnitureItem != null) {
+                        storeroom.getFurniture().remove(furnitureItem);
+                        location.addFurniture(furnitureItem);
+                    }else{
+                        // Check if the entity is a hidden location
+                        if (currGameMap.containsKey(entity)) {
+                            location.addPathToLocation(entity);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }
