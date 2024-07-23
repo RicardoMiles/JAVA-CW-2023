@@ -12,10 +12,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public final class GameServer {
 
@@ -60,7 +57,7 @@ public final class GameServer {
     */
     public String handleCommand(String command) {
         // TODO implement your server logic here
-        CommandNormalizer cmdHandler =  new CommandNormalizer(command);
+        CommandNormalizer cmdHandler =  new CommandNormalizer(command,currGameState);
         String currPlayer = cmdHandler.outputPlayerName();
         currGameState.loadPlayer(currPlayer);
         cmdHandler.importGameMap(currGameState.getCurrGameMap());
@@ -97,7 +94,7 @@ public final class GameServer {
                     currGameState.gotoCMD(currPlayer,targetLocation);
                     return "You went to " + targetLocation + "." + System.lineSeparator();
                 }else{
-                    return "Goto Command Detected, but target location is invalid." +System.lineSeparator();
+                    return "Goto Command Detected, but target location is invalid." + System.lineSeparator();
                 }
             case "look":
                 return currGameState.lookCMD(currPlayer);
@@ -108,10 +105,37 @@ public final class GameServer {
                 int healthValue = currGameState.getPlayerHealth(currPlayer);
                 String convertedHealth = Integer.toString(healthValue);
                 return convertedHealth;
-            case "Conflicted unsupported multiple command":
+            case "conflicted unsupported multiple command":
                 return "there is more than one valid action possible - which one do you want to perform ?";
-            default:
+            case "no matched command":{
                 return "Unknown command ! ! ! ";
+            }
+            default:
+                Set<GameAction> actions = currGameState.getActionsForTrigger(matchedCommand);
+                if (!actions.isEmpty()) {
+                    for (GameAction action : actions) {
+                        Set<String> subjects = action.getSubjects();
+                        List<String> commandParts = cmdHandler.getCommandParts();
+                        Set<String> commandEntities = new HashSet<>(commandParts);
+                        commandEntities.retainAll(subjects);
+
+                        if (commandEntities.size() > subjects.size()) {
+                            return "Extraneous Entities for" + matchedCommand + System.lineSeparator();
+                        }
+                        if (commandEntities.size() < 1) {
+                            return "All subjects missing for action" + matchedCommand + System.lineSeparator();
+                        }
+                        if (commandEntities.size() == subjects.size()) {
+                            return "至少subject个数是对的,需要结合当前玩家和Location进一步判断." + System.lineSeparator();
+                        }
+                        if (commandEntities.size() < subjects.size()){
+                            return "缺了一个subject，需要结合当前玩家和Location进一步判断." + System.lineSeparator();
+                        }
+
+                    }
+                    return "Action performed: " + matchedCommand;
+                }
+                return "Flexible command detected, but execution failed. " + System.lineSeparator();
         }
     }
 

@@ -8,6 +8,7 @@ import edu.uob.GameEntities.Player;
 import edu.uob.GameEntity;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GameState {
     private String startingLocation;
@@ -210,5 +211,42 @@ public class GameState {
             }
         }
         return null;
+    }
+
+    public Set<String> getAllTriggerPhrases() {
+        Set<String> allTriggerPhrases = new HashSet<>();
+        for (HashSet<GameAction> actions : currGameActions.values()) {
+            for (GameAction action : actions) {
+                allTriggerPhrases.addAll(action.getTriggerPhrases());
+            }
+        }
+        return allTriggerPhrases;
+    }
+
+    public Set<GameAction> getActionsForTrigger(String trigger) {
+        return currGameActions.getOrDefault(trigger, new HashSet<>());
+    }
+
+    public boolean playerAndLocationHaveAllEntities(String playerName, Set<String> entities) {
+        Player player = playersList.get(playerName);
+        if (player == null) {
+            return false;
+        }
+
+        Location location = locatePlayer(playerName);
+        if (location == null) {
+            return false;
+        }
+
+        Set<String> inventory = player.getInventory().stream().map(Artefact::getName).collect(Collectors.toSet());
+        Set<String> locationEntities = new HashSet<>();
+        locationEntities.addAll(location.getArtefacts().stream().map(Artefact::getName).collect(Collectors.toSet()));
+        locationEntities.addAll(location.getCharacters().stream().map(Character::getName).collect(Collectors.toSet()));
+        locationEntities.addAll(location.getFurniture().stream().map(GameEntity::getName).collect(Collectors.toSet()));
+
+        Set<String> combinedEntities = new HashSet<>(inventory);
+        combinedEntities.addAll(locationEntities);
+
+        return combinedEntities.containsAll(entities);
     }
 }

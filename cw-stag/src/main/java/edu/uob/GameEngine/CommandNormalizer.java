@@ -20,8 +20,8 @@ public class CommandNormalizer {
 
     public List<String> commandParts ;
 
-    public CommandNormalizer(String incomingCommand) {
-        this.flexibleCommands = new ArrayList<>();
+    public CommandNormalizer(String incomingCommand, GameState currGameState) {
+        this.flexibleCommands = new ArrayList<>(currGameState.getAllTriggerPhrases());
         this.currGameMap = new HashMap<>();
         // Preprocessing ： adapt to TASK 8 Command Flexibility
         incomingCommand = incomingCommand.toLowerCase();
@@ -73,6 +73,17 @@ public class CommandNormalizer {
                     }
                 }
             }
+            for (String flexibleCommand : flexibleCommands){
+                if(commandPart.equals(flexibleCommand)){
+                    matchCount++;
+                    if(matchCount == 1){
+                        matchedCommand = flexibleCommand;
+                    }else{
+                        matchedCommand = "Conflicted unsupported multiple command";
+                        break;
+                    }
+                }
+            }
             if (matchCount > 1) {
                 matchedCommand = "Conflicted unsupported multiple command";
                 break;
@@ -85,11 +96,6 @@ public class CommandNormalizer {
 
         // 输出匹配结果
         System.out.println("Matched Command: " + matchedCommand);
-
-//        switch(matchedCommand){
-//            case "get":
-//                commandParts;
-//        }
 
         return matchedCommand;
     }
@@ -181,6 +187,10 @@ public class CommandNormalizer {
             }
         }
         return null;
+    }
+
+    public List<String> getCommandParts() {
+        return commandParts;
     }
 
 }
