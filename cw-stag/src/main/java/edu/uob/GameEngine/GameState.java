@@ -46,6 +46,10 @@ public class GameState {
         }
     }
 
+    public Player findPlayerByName(String playerName) {
+        return playersList.get(playerName);
+    }
+
     public int getPlayerHealth(String playerName) {
         Player player = playersList.get(playerName);
         if (player != null) {
@@ -317,6 +321,23 @@ public class GameState {
                 }
             }
         }
+    }
+
+    public void dropAllItems(String playerName) {
+        Player player = playersList.get(playerName);
+        Location location = locatePlayer(playerName);
+
+        if (player != null && location != null) {
+            Set<Artefact> inventory = player.getInventory();
+            for (Artefact item : inventory) {
+                location.addArtefact(item);
+            }
+            inventory.clear();
+        }
+    }
+
+    public String getStartingLocation(){
+        return startingLocation;
     }
 
 }
