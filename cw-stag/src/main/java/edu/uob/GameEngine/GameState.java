@@ -361,4 +361,33 @@ public class GameState {
         return startingLocation;
     }
 
+    public Set<String> getAllEntitiesName() {
+        Set<String> entitiesInGame = new HashSet<>();
+
+        // Get all location name
+        for (Location location : currGameMap.values()) {
+            entitiesInGame.add(location.getName());
+
+            // Get all Artefacts' name from location
+            for (Artefact artefact : location.getArtefacts()) {
+                entitiesInGame.add(artefact.getName());
+            }
+
+            // Get all Furniture's name from location
+            for (Furniture furniture : location.getFurniture()) {
+                entitiesInGame.add(furniture.getName());
+            }
+
+        }
+
+        // Get inventory items' name from all players
+        for (Player player : playersList.values()) {
+            for (Artefact artefact : player.getInventory()) {
+                entitiesInGame.add(artefact.getName());
+            }
+        }
+
+        return entitiesInGame;
+    }
+
 }

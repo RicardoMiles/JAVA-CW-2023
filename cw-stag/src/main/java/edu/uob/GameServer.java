@@ -141,6 +141,13 @@ public final class GameServer {
                         if (commandEntities.size() <= subjects.size()) {
                             // Further check for subjects
                             if (currGameState.checkPlayerAndLocationHaveAllEntities(currPlayer, subjects)) {
+                                // Check for the extraneous entities not present in actionFiles rule
+                                Set<String> extraneousEntities = new HashSet<>(commandParts);
+                                extraneousEntities.removeAll(subjects);
+                                extraneousEntities.retainAll(currGameState.getAllEntitiesName());
+                                if (!extraneousEntities.isEmpty()) {
+                                    return "Extraneous entities detected: " + extraneousEntities.toString() + System.lineSeparator();
+                                }
                                 // Execute the action for producing and consuming entities
                                 currGameState.performActionFromFiles(action, currPlayer);
                                 if (currGameState.getPlayerHealth(currPlayer) == 0) {
