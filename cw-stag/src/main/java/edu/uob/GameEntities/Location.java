@@ -44,7 +44,9 @@ public class Location extends GameEntity {
     }
 
     public void addCharacterToLocation(Character character){
-        characters.add(character);
+        if (!characters.contains(character)) {
+            characters.add(character);
+        }
     }
 
     public void addArtefact(Artefact artefact){
@@ -165,6 +167,8 @@ public class Location extends GameEntity {
         }
         return playersList.toString();
     }
+
+
 
 
 }

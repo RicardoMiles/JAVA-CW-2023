@@ -66,7 +66,7 @@ public final class GameServer {
         String currLocationName = currGameState.locatePlayer(currPlayer).getName();
         boolean containExtraneousLocation = false;
         for (String part : commandParts) {
-            if (!part.equals(currLocationName) && currGameState.getCurrGameMap().containsKey(part)) {
+            if (currGameState.getCurrGameMap().containsKey(part)) {
                 containExtraneousLocation = true; // Find locationName other than currLocationName
             }
         }
@@ -87,7 +87,7 @@ public final class GameServer {
                         return currGameState.getCMD(itemToBePickedUp,currPlayer);
                 }
             case "drop":
-                String itemToDrop = cmdHandler.checkItemToDrop(currPlayer);
+                String itemToDrop = cmdHandler.checkItemsToDrop(currPlayer);
                 if(containExtraneousLocation){
                     return "Extraneous location in command. " + System.lineSeparator();
                 }

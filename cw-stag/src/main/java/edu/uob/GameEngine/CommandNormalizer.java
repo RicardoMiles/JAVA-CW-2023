@@ -145,19 +145,39 @@ public class CommandNormalizer {
         }
     }
 
-    public String checkItemToDrop(String playerName){
+    public String checkItemsToDrop(String playerName){
         List<String> matchedArtefacts = new ArrayList<>();
         Player playerToDropItem = findPlayerByName(playerName);
 
         if (playerToDropItem != null) {
+            List<String> unmatchedCommandParts = new ArrayList<>();
+            // Check in player's inventory
             for (String commandPart : commandParts){
                 Set<Artefact> inventory = playerToDropItem.getInventory();
+                boolean matched = false;
                 for (Artefact artefact : inventory) {
                     if(artefact.getName().equals(commandPart)){
+                        matched = true;
                         matchedArtefacts.add(commandPart);
                     }
                 }
+                if (!matched) {
+                    unmatchedCommandParts.add(commandPart);
+                }
             }
+
+            // Check in all locations if not found in inventory
+            for (String commandPart : unmatchedCommandParts) {
+                for (Location location : currGameMap.values()) {
+                    List<Artefact> artefacts = location.getArtefacts();
+                    for (Artefact artefact : artefacts) {
+                        if (artefact.getName().equals(commandPart)) {
+                            matchedArtefacts.add(commandPart);
+                        }
+                    }
+                }
+            }
+
         } else {
             return "Player not found in any location!" ;
         }

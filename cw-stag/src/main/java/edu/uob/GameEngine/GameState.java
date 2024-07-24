@@ -318,9 +318,25 @@ public class GameState {
                         storeroom.getFurniture().remove(furnitureItem);
                         location.addFurniture(furnitureItem);
                     }else{
-                        // Check if the entity is a hidden location
-                        if (currGameMap.containsKey(entity)) {
-                            location.addPathToLocation(entity);
+                        // Check and move Character from storeroom
+                        Character character = storeroom.getCharacters().stream().filter(c -> c.getName().equals(entity)).findFirst().orElse(null);
+                        if (character != null) {
+                            storeroom.removeCharacterFromLocation(character);
+                            location.addCharacterToLocation(character);
+                        } else {
+                            // If it is generated and pulled from store room
+                            for (Location loc : currGameMap.values()) {
+                                Character existingCharacter = loc.getCharacters().stream().filter(c -> c.getName().equals(entity)).findFirst().orElse(null);
+                                if (existingCharacter != null) {
+                                    loc.removeCharacterFromLocation(existingCharacter);
+                                    location.addCharacterToLocation(existingCharacter);
+                                    break;
+                                }
+                            }
+                            // Check if it is a possible path to be locked
+                            if (currGameMap.containsKey(entity)) {
+                                location.addPathToLocation(entity);
+                            }
                         }
                     }
                 }

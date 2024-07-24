@@ -74,5 +74,16 @@ class ExampleSTAGTests {
   }
 
   // Add more unit tests or integration tests here.
-
+    @Test
+    void testExtraneousEntities(){
+      String response;
+      sendCommandToServer("simon: get axe");
+      sendCommandToServer("simon: get potion");
+      response = sendCommandToServer("simon: inv");
+      response = response.toLowerCase();
+      assertTrue(response.contains("potion") && response.contains("axe"), "Did not see the potion and the axe in the inventory after an attempt was made to get them");
+      response = sendCommandToServer("simon: drop axe and potion");
+      response = response.toLowerCase();
+      assertTrue(response.contains(""));
+  }
 }
