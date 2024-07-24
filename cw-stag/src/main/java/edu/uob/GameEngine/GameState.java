@@ -293,6 +293,11 @@ public class GameState {
                 if (storeroom != null) {
                     storeroom.addFurniture(furnitureItem);
                 }
+            } else {
+                // Check if the entity is a hidden location
+                if (location.getPaths().contains(entity)) {
+                    location.removePathFromLocation(entity);
+                }
             }
         }
 

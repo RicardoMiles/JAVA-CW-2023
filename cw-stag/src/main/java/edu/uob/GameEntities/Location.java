@@ -26,6 +26,10 @@ public class Location extends GameEntity {
         paths.add(locationName);
     }
 
+    public void removePathFromLocation(String locationName){
+        paths.remove(locationName);
+    }
+
     public void findAccessibleLocation(List<PathPair> pathsInEntitiesFile){
         List<String> accessibleLocations = new ArrayList<>();
         for (PathPair path : pathsInEntitiesFile) {
