@@ -17,8 +17,4 @@ public class PathPair  {
         return endLocation;
     }
 
-    @Override
-    public String toString() {
-        return "(" + startLocation + ", " + endLocation + ")";
-    }
 }

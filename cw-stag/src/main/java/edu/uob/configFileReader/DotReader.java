@@ -56,8 +56,6 @@ public class DotReader {
 
             // Creating new location by the info collected
             Location currentLocation = new Location(currentLocationName,currentLocationDescription);
-            // System.out.println("Read locations currently: "+ currentLocationName);
-            // System.out.println("Location's description is: "+currentLocationDescription);
 
             // Recursively add entities into location
             ArrayList<Graph> entities = location.getSubgraphs();
@@ -107,17 +105,12 @@ public class DotReader {
 
         // Store the path pair into the pathlist
         for (Edge edge : paths){
-//            Node sourceLocation = edge.getSource().getNode();
-//            String sourceName = sourceLocation.getId().getId();
-//            Node targetLocation = edge.getSource().getNode();
-//            String targetName = targetLocation.getId().getId();
             Node fromLocation = edge.getSource().getNode();
             String sourceName = fromLocation.getId().getId();
             Node toLocation = edge.getTarget().getNode();
             String targetName = toLocation.getId().getId();
             pathsInEntitiesfile.add(new PathPair(sourceName,targetName));
         }
-//        System.out.println(pathsInEntitiesfile.toString());
         transPairToPath(pathsInEntitiesfile);
     }
 

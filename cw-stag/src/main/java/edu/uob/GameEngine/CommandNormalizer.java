@@ -97,9 +97,6 @@ public class CommandNormalizer {
             matchedCommand = "No matched command";
         }
 
-        // Output the matched result
-        System.out.println("Matched Command: " + matchedCommand);
-
         return matchedCommand;
     }
 
@@ -161,13 +158,11 @@ public class CommandNormalizer {
             }
         }
         if (matchedArtefacts.size() == 1){
-            System.out.println("Cool! Only One Valid item");
             return matchedArtefacts.get(0);
         } else if(matchedArtefacts.size() >= 2){
-            System.out.println("There is more than one thing you can get here - which one do you want" + System.lineSeparator());
             return ("MultipleItem");
         } else{
-            System.out.println("No valid item to pick up." + System.lineSeparator());
+            System.out.println("[ERROR] No valid item to pick up." + System.lineSeparator());
             return ("NoItem");
         }
     }
@@ -217,13 +212,11 @@ public class CommandNormalizer {
         }
 
         if (matchedArtefacts.size() == 1){
-            System.out.println("Cool! Only One Valid item");
             return matchedArtefacts.get(0);
         } else if(matchedArtefacts.size() >= 2){
-            System.out.println("There is more than one thing you can get here - which one do you want" + System.lineSeparator());
             return ("MultipleItem");
         } else{
-            System.out.println("No valid item to pick up." + System.lineSeparator());
+            System.out.println("[ERROR] No valid item to pick up." + System.lineSeparator());
             return ("NoItem");
         }
     }

@@ -103,19 +103,6 @@ public class XmlReader {
         return new GameAction(triggerPhrases, subjects, consumedEntities, producedEntities, narration);
     }
 
-    private void printActions() {
-        actionList.forEach((key, value) -> {
-            System.out.println("Trigger Phrase: " + key);
-            value.forEach(action -> {
-                System.out.println("  Subjects: " + action.getSubjects());
-                System.out.println("  Consumed Entities: " + action.getConsumedEntities());
-                System.out.println("  Produced Entities: " + action.getProducedEntities());
-                System.out.println("  Narration: " + action.getNarration());
-            });
-            System.out.println("----------------------------------------");
-        });
-    }
-
     public HashMap<String, HashSet<GameAction>> getGameActions() {
         return actionList;
     }

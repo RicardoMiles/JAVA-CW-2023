@@ -31,9 +31,7 @@ public class GameState {
     }
 
     public void loadPlayer(String playerName) {
-        if (playersList.containsKey(playerName)) {
-            System.out.println("Player Exist ! ! ! ");
-        } else {
+        if (!playersList.containsKey(playerName)) {
             Player newPlayer = new Player(playerName, "User controlled player");
             playersList.put(playerName, newPlayer);
             // Add the new player to the starting location's characters list
@@ -41,7 +39,7 @@ public class GameState {
             if (startingLoc != null) {
                 startingLoc.addCharacterToLocation(newPlayer);
             } else {
-                System.out.println("Starting location not found in the game map!");
+                System.out.println("[ERROR] Starting location not found in the game map!");
             }
         }
     }
@@ -111,12 +109,11 @@ public class GameState {
             if (targetLoc != null) {
                 currentLocation.removeCharacterFromLocation(playerToMove);
                 targetLoc.addCharacterToLocation(playerToMove);
-                System.out.println(playerName + " has been moved to " + targetLocation);
             } else {
-                System.out.println("Target location not found in the game map!");
+                System.out.println("[ERROR] Target location not found in the game map!");
             }
         } else {
-            System.out.println("Player not found in any location!");
+            System.out.println("[ERROR] Player not found in any location!");
         }
     }
 
@@ -145,21 +142,18 @@ public class GameState {
             // Get items in inventory
             inventoryOfPlayer= playerToCheck.getInventory();
             if (inventoryOfPlayer.isEmpty()) {
-                System.out.println(playerName + "'s inventory is empty.");
                 return "Your inventory is empty." + System.lineSeparator();
             } else {
-                System.out.println(playerName + "'s inventory contains:");
                 StringBuilder inventoryInfo = new StringBuilder("You have the following items:" + System.lineSeparator());
                 for (Artefact item : inventoryOfPlayer) {
                     String itemName = item.getName();
                     String itemDescription = item.getDescription();
                     inventoryInfo.append(itemName).append(" - ").append(itemDescription).append(System.lineSeparator());
                 }
-                System.out.print(inventoryInfo.toString());
                 return inventoryInfo.toString();
             }
         } else {
-            System.out.println("Player not found in any location!");
+            System.out.println("[ERROR] Player not found in any location!");
             return "Player not found in any location!";
         }
     }
@@ -184,7 +178,7 @@ public class GameState {
                 }
             }
         } else {
-            System.out.println("Player not found in any location!");
+            System.out.println("[ERROR] Player not found in any location!");
             return "Player not found in any location!";
         }
     }

@@ -7,5 +7,4 @@ public class Furniture extends GameEntity {
         super(name, description);
     }
 
-    //可以添加其他特定于Furniture的方法和assets
 }

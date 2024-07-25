@@ -21,7 +21,6 @@ public class Location extends GameEntity {
         this.furniture = new ArrayList<>();
     }
 
-    //其他特定于Location的方法和assets
     public void addPathToLocation(String locationName){
         paths.add(locationName);
     }
