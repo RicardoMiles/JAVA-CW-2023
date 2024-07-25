@@ -138,16 +138,4 @@ public class DotReader {
         return nameMappingLocationList;
     }
 
-//    public List<Location> getLocationList() {
-//        return this.locationsInEntitiesfile;
-//    }
-//
-//    public String getStartingLocation() {
-//        return this.startingLocation;
-//    }
-//
-//    public List<PathPair> getPathsInConfig(){
-//        return this.pathsInEntitiesfile;
-//    }
-
 }

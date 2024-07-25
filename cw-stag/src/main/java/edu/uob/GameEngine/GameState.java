@@ -103,7 +103,7 @@ public class GameState {
         return currGameMap;
     }
 
-    public void gotoCMD(String playerName, String targetLocation){
+    public void executeGotoCMD(String playerName, String targetLocation){
         Location currentLocation = locatePlayer(playerName);
         if (currentLocation != null) {
             Player playerToMove = playersList.get(playerName);
@@ -120,7 +120,7 @@ public class GameState {
         }
     }
 
-    public String inventoryCMD(String playerName) {
+    public String executeInventoryCMD(String playerName) {
         // Find where is the player right now
         Location currentLocation = null;
         Player playerToCheck = null;
@@ -164,7 +164,7 @@ public class GameState {
         }
     }
 
-    public String getCMD(String itemName,String playerName) {
+    public String executeGetCMD(String itemName,String playerName) {
         Location currentLocation = locatePlayer(playerName);
         if (currentLocation != null) {
             Player playerToGainItem = playersList.get(playerName);
@@ -189,7 +189,7 @@ public class GameState {
         }
     }
 
-    public String dropCMD(String itemName,String playerName){
+    public String executeDropCMD(String itemName,String playerName){
         Location currentLocation = locatePlayer(playerName);
         if (currentLocation != null) {
             Player playerToDropItem = playersList.get(playerName);
@@ -212,6 +212,7 @@ public class GameState {
             return "Player not found in any location!";
         }
     }
+
     public Location locatePlayer(String playerName) {
         for (Location location : currGameMap.values()) {
             for (Character player : location.getCharacters()) {

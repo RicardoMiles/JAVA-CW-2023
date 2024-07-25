@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.alexmerz.graphviz.ParseException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.nio.file.Paths;
@@ -22,13 +25,7 @@ class ExampleSTAGTests {
   void setup() {
       File entitiesFile = Paths.get("config" + File.separator + "basic-entities.dot").toAbsolutePath().toFile();
       File actionsFile = Paths.get("config" + File.separator + "basic-actions.xml").toAbsolutePath().toFile();
-      try {
-          server = new GameServer(entitiesFile, actionsFile);
-      } catch (FileNotFoundException e) {
-          throw new RuntimeException(e);
-      } catch (ParseException e) {
-          throw new RuntimeException(e);
-      }
+      server = new GameServer(entitiesFile, actionsFile);
   }
 
   String sendCommandToServer(String command) {

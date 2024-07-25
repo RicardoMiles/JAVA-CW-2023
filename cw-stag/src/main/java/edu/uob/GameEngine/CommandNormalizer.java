@@ -25,33 +25,37 @@ public class CommandNormalizer {
         this.flexibleCommands = new ArrayList<>(currGameState.getAllTriggerPhrases());
         this.currGameMap = new HashMap<>();
 
-        // 步骤 1：处理第一个“:”之前的内容
+        // Step 1: Process content before the first ":"
         this.playerName = "";
         int colonIndex = incomingCommand.indexOf(':');
         if (colonIndex != -1) {
             this.playerName = incomingCommand.substring(0, colonIndex).replaceAll("\\s+", "");
         }
 
-        // 步骤 2：处理第一个“:”之后的内容
+        // Step 2: Process content after the first ":"
         String remainingCommand = "";
         if (colonIndex != -1 && colonIndex + 1 < incomingCommand.length()) {
             // Preprocessing ： adapt to TASK 8 Command Flexibility
             remainingCommand = incomingCommand.substring(colonIndex + 1).trim().toLowerCase();
         }
 
-        // 使用空格分割字符串，并存储到列表中
+        // Split the string by spaces and store it in a list
         this.commandParts = new ArrayList<>();
         String[] parts = remainingCommand.split("\\s+");
         for (String part : parts) {
             commandParts.add(part);
         }
 
-        // 输出测试
-        System.out.println("Command Parts: " + commandParts);
-
         this.matchedCommand = findMatchedCommand(commandParts);
     }
 
+    /**
+     * Finds the matched command from the list of command parts.
+     * Test if multiple commands or not.
+     *
+     * @param commandParts List of command parts to search for matched command.
+     * @return The matched command or an error message if conflicts or no matches are found.
+     */
     public String findMatchedCommand(List<String> commandParts) {
         // Built-in commands
         List<String> predefinedCommands = List.of("get", "drop", "goto", "look", "inventory", "inv", "health");
@@ -99,14 +103,31 @@ public class CommandNormalizer {
         return matchedCommand;
     }
 
+    /**
+     * Returns the player's name extracted from the command.
+     * Using by multiplayer feature to differ players
+     *
+     * @return The player's name.
+     */
     public String outputPlayerName() {
         return playerName;
     }
 
+    /**
+     * Returns the normalized command after parsing the command parts.
+     *
+     * @return The matched command.
+     */
     public String outputMatchedCommand() {
         return matchedCommand;
     }
 
+    /**
+     * Finds the target location for the "goto" command from the command parts.
+     * Avoid invalid location and multiple locations.
+     *
+     * @return The name of the target location or an error message if the target is invalid.
+     */
     public String findGotoTarget() {
         List<String> matchedLocations = new ArrayList<>();
         for (String commandPart : commandParts) {
@@ -121,6 +142,12 @@ public class CommandNormalizer {
         }
     }
 
+    /**
+     * Checks the items to be taken from the current location based on the command parts.
+     * Avoid invalid items, double command and extraneous entities.
+     *
+     * @return The name of the item to be taken, or an error message if no valid item is found.
+     */
     public String checkItemsToBeTaken(){
         List<String> matchedArtefacts = new ArrayList<>();
         for (String commandPart : commandParts){
@@ -145,6 +172,13 @@ public class CommandNormalizer {
         }
     }
 
+    /**
+     * Checks the items to be dropped by the player based on the command parts.
+     * Avoid extraneous entities for drop command and entity does not exist.
+     *
+     * @param playerName The name of the player who is dropping the items.
+     * @return The name of the item to be dropped, or an error message if no valid item is found.
+     */
     public String checkItemsToDrop(String playerName){
         List<String> matchedArtefacts = new ArrayList<>();
         Player playerToDropItem = findPlayerByName(playerName);
@@ -194,6 +228,11 @@ public class CommandNormalizer {
         }
     }
 
+    /**
+     * Imports the current game map for use in command pre-processing.
+     *
+     * @param importedGameMap The game map to be imported.
+     */
     public void importGameMap(HashMap<String, Location> importedGameMap){
         this.currGameMap = importedGameMap;
     }
@@ -208,56 +247,14 @@ public class CommandNormalizer {
         return null;
     }
 
+    /**
+     * Returns the list of command parts extracted from the incoming command.
+     * For more flexible further processing in GameServer
+     *
+     * @return The list of command parts.
+     */
     public List<String> getCommandParts() {
         return commandParts;
-    }
-
-    // Method to check for extraneous locations in the command
-    public boolean hasExtraneousLocationNames(Set<String> actionSubjects, Set<String> actionConsumed, Set<String> actionProduced) {
-        for (String part : commandParts) {
-            if (currGameMap.containsKey(part) && !actionSubjects.contains(part) && !actionConsumed.contains(part) && !actionProduced.contains(part)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Method to check for extraneous artefacts in the command
-    public boolean hasExtraneousArtefactNames(Set<String> actionSubjects, Set<String> actionConsumed, Set<String> actionProduced) {
-        for (String part : commandParts) {
-            boolean found = false;
-            for (Location location : currGameMap.values()) {
-                for (Artefact artefact : location.getArtefacts()) {
-                    if (artefact.getName().equals(part)) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            if (found && !actionSubjects.contains(part) && !actionConsumed.contains(part) && !actionProduced.contains(part)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Method to check for extraneous furniture in the command
-    public boolean hasExtraneousFurnitureNames(Set<String> actionSubjects, Set<String> actionConsumed, Set<String> actionProduced) {
-        for (String part : commandParts) {
-            boolean found = false;
-            for (Location location : currGameMap.values()) {
-                for (Furniture furniture : location.getFurniture()) {
-                    if (furniture.getName().equals(part)) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            if (found && !actionSubjects.contains(part) && !actionConsumed.contains(part) && !actionProduced.contains(part)) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }

@@ -30,19 +30,6 @@ public class Location extends GameEntity {
         paths.remove(locationName);
     }
 
-    public void findAccessibleLocation(List<PathPair> pathsInEntitiesFile){
-        List<String> accessibleLocations = new ArrayList<>();
-        for (PathPair path : pathsInEntitiesFile) {
-            if (path.getStartLocationFromPath().equals(this.getName())) {
-                paths.add(path.getEndLocationFromPath());
-            }
-        }
-    }
-
-    public boolean checkPathAccessibility(Location location){
-        return paths.contains(location.getName());
-    }
-
     public void addCharacterToLocation(Character character){
         if (!characters.contains(character)) {
             characters.add(character);

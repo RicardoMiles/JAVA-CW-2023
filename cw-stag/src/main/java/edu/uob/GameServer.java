@@ -7,7 +7,9 @@ import edu.uob.GameEntities.Location;
 import edu.uob.GameEntities.PathPair;
 import edu.uob.configFileReader.DotReader;
 import edu.uob.configFileReader.XmlReader;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -34,15 +36,31 @@ public final class GameServer {
     * @param entitiesFile The game configuration file containing all game entities to use in your game
     * @param actionsFile The game configuration file containing all game actions to use in your game
     */
-    public GameServer(File entitiesFile, File actionsFile) throws FileNotFoundException, ParseException {
+    public GameServer(File entitiesFile, File actionsFile) {
         // TODO implement your server logic here
         // Read the entitiesFile into DotReader and export to GameState
-        DotReader dotReader = new DotReader(entitiesFile);
+        DotReader dotReader = null;
+        try {
+            dotReader = new DotReader(entitiesFile);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
         List<Location> locations = dotReader.locationsInEntitiesfile;
         String startingLocation = dotReader.startingLocation;
         HashMap<String,Location> currGameMap = dotReader.getGameMap();
         // Read the actionsFile into XmlReader and export to GameState
-        XmlReader xmlReader = new XmlReader(actionsFile);
+        XmlReader xmlReader = null;
+        try {
+            xmlReader = new XmlReader(actionsFile);
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (SAXException e) {
+            throw new RuntimeException(e);
+        }
         HashMap<String, HashSet<GameAction>> currGameActions = xmlReader.getGameActions();
         this.currGameState = new GameState(startingLocation);
         currGameState.loadGameMap(currGameMap);
@@ -84,7 +102,7 @@ public final class GameServer {
                     case "Player not found in any location!":
                         return "Player not found in any location!"+ System.lineSeparator();
                     default:
-                        return currGameState.getCMD(itemToBePickedUp,currPlayer);
+                        return currGameState.executeGetCMD(itemToBePickedUp,currPlayer);
                 }
             case "drop":
                 String itemToDrop = cmdHandler.checkItemsToDrop(currPlayer);
@@ -99,13 +117,13 @@ public final class GameServer {
                     case "Player not found in any location!":
                         return "Player not found in any location!"+ System.lineSeparator();
                     default:
-                        return currGameState.dropCMD(itemToDrop,currPlayer);
+                        return currGameState.executeDropCMD(itemToDrop,currPlayer);
                 }
             case "goto":
                 String targetLocation = cmdHandler.findGotoTarget();
                 boolean accessibleOrNot = currGameState.checkLocationAccessiblity(currPlayer,targetLocation);
                 if(accessibleOrNot){
-                    currGameState.gotoCMD(currPlayer,targetLocation);
+                    currGameState.executeGotoCMD(currPlayer,targetLocation);
                     return "You went to " + targetLocation + "." + System.lineSeparator();
                 }else{
                     return "Goto Command Detected, but target location is invalid." + System.lineSeparator();
@@ -114,7 +132,7 @@ public final class GameServer {
                 return currGameState.lookCMD(currPlayer);
             case "inventory":
             case "inv":
-                return currGameState.inventoryCMD(currPlayer);
+                return currGameState.executeInventoryCMD(currPlayer);
             case "health":
                 int healthValue = currGameState.getPlayerHealth(currPlayer);
                 String convertedHealth = Integer.toString(healthValue);
@@ -153,7 +171,7 @@ public final class GameServer {
                                 if (currGameState.getPlayerHealth(currPlayer) == 0) {
                                     currGameState.dropAllItems(currPlayer);
                                     currGameState.findPlayerByName(currPlayer).resetHealth();
-                                    currGameState.gotoCMD(currPlayer, currGameState.getStartingLocation());
+                                    currGameState.executeGotoCMD(currPlayer, currGameState.getStartingLocation());
                                     return "you died and lost all of your items, you must return to the start of the game" + System.lineSeparator();
                                 }
                                 return action.getNarration() + System.lineSeparator();
