@@ -43,10 +43,6 @@ public class Location extends GameEntity {
         furniture.add(furnitureItem);
     }
 
-    public List<String> getPaths(){
-        return paths;
-    }
-
     public List<Character> getCharacters(){
         return characters;
     }
@@ -89,6 +85,9 @@ public class Location extends GameEntity {
         return furnitureList.toString();
     }
 
+    public List<String> getPaths(){
+        return paths;
+    }
 
     public void removeCharacterFromLocation(Character character) {
         characters.remove(character);
@@ -101,24 +100,6 @@ public class Location extends GameEntity {
             }
         }
         return false;
-    }
-
-    public Artefact getArtefactByName(String artefactName) {
-        for (Artefact artefact : artefacts) {
-            if (artefact.getName().equals(artefactName)) {
-                return artefact;
-            }
-        }
-        return null;
-    }
-
-    public Player findPlayerByName(String playerName) {
-        for (Character character : characters) {
-            if (character.getName().equals(playerName) && character instanceof Player) {
-                return (Player) character;
-            }
-        }
-        return null;
     }
 
     public String getCharactersList() {
@@ -153,8 +134,25 @@ public class Location extends GameEntity {
         }
         return playersList.toString();
     }
+    
+    public Artefact getArtefactByName(String artefactName) {
+        for (int i = 0; i < artefacts.size(); i++) {
+            Artefact artefact = artefacts.get(i);
+            if (artefact.getName().equals(artefactName)) {
+                return artefact;
+            }
+        }
+        return null;
+    }
 
-
-
+    public Player findPlayerByName(String playerName) {
+        for (int i = 0; i < characters.size(); i++) {
+            Character character = characters.get(i);
+            if (character.getName().equals(playerName) && character instanceof Player) {
+                return (Player) character;
+            }
+        }
+        return null;
+    }
 
 }

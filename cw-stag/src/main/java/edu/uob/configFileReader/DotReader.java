@@ -104,12 +104,13 @@ public class DotReader {
         ArrayList<Edge> paths = sections.get(1).getEdges();
 
         // Store the path pair into the pathlist
-        for (Edge edge : paths){
+        for (int i = 0; i < paths.size(); i++) {
+            Edge edge = paths.get(i);
             Node fromLocation = edge.getSource().getNode();
             String sourceName = fromLocation.getId().getId();
             Node toLocation = edge.getTarget().getNode();
             String targetName = toLocation.getId().getId();
-            pathsInEntitiesfile.add(new PathPair(sourceName,targetName));
+            pathsInEntitiesfile.add(new PathPair(sourceName, targetName));
         }
         transPairToPath(pathsInEntitiesfile);
     }
