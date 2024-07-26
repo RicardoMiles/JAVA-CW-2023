@@ -4,9 +4,8 @@ import com.alexmerz.graphviz.ParseException;
 import edu.uob.GameEngine.CommandNormalizer;
 import edu.uob.GameEngine.GameState;
 import edu.uob.GameEntities.Location;
-import edu.uob.GameEntities.PathPair;
-import edu.uob.configFileReader.DotReader;
-import edu.uob.configFileReader.XmlReader;
+import edu.uob.ConfigFilesReader.DotReader;
+import edu.uob.ConfigFilesReader.XmlReader;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;

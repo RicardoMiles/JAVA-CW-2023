@@ -1,4 +1,4 @@
-package edu.uob.configFileReader;
+package edu.uob.ConfigFilesReader;
 
 import java.util.ArrayList;
 import java.io.FileNotFoundException;

@@ -1,4 +1,4 @@
-package edu.uob.configFileReader;
+package edu.uob.ConfigFilesReader;
 
 import edu.uob.GameAction;
 import org.w3c.dom.*;
