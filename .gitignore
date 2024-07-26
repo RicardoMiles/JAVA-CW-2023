@@ -25,7 +25,6 @@ cw-stag/libs
 
 # Ignore the compiled files
 **/target/
-**/.mvn/
 
 # Ignorance update 2024-05-07
 # for macOS devices sync editing 
