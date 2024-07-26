@@ -32,3 +32,4 @@ cw-stag/libs
 cw-stag/src/test/java/edu/uob/BasicCommandTests.java
 cw-stag/src/test/java/edu/uob/ExtendedTests.java
 cw-stag/src/test/java/edu/uob/MultiPlayerTests.java
+/cw-db/databases
