@@ -10,15 +10,15 @@ public class Row {
         this.valueList = valueList;
     }
 
-    public String getValue(int index) {
+    public String getRowValue(int index) {
         return this.valueList.get(index);
     }
 
-    public void setValue(int index, String value) {
+    public void setRowValue(int index, String value) {
         this.valueList.set(index, value);
     }
 
-    public List<String> getValueList() {
+    public List<String> getValueListFromRow() {
         return valueList;
     }
 }

@@ -7,16 +7,16 @@ import java.util.List;
 
 public class Parser {
 
-    //    String query = "  INSERT  INTO  people   VALUES(  'Simon Lock'  ,35, 'simon@bristol.ac.uk' , 1.8  ) ; ";
+    // String query = "  INSERT  INTO  people   VALUES(  'Simon Lock'  ,35, 'simon@bristol.ac.uk' , 1.8  ) ; ";
     final static List<String> SPECIAL_CHARACTERS = Arrays.asList("(", ")", ",", ";");
 
     public static List<String> setup(String query) {
         List<String> tokens = new ArrayList<>();
         // Remove any whitespace at the beginning and end of the query
-        //删除查询开头和结尾的任何空白
+        // 删除查询开头和结尾的任何空白
         query = query.trim();
         // Split the query on single quotes (to separate out query characters from string literals)
-        //用单引号分隔查询(将查询字符从字符串字面量中分隔出来)
+        // 用单引号分隔查询(将查询字符从字符串字面量中分隔出来)
         String[] fragments = query.split("'");
         for (int i = 0; i < fragments.length; i++) {
             // Every odd fragment is a string literal, so just append it without any alterations
@@ -53,7 +53,7 @@ public class Parser {
         }
         // Remove all double spaces (the previous replacements may had added some)
         // This is "blind" replacement - replacing if they exist, doing nothing if they don't
-        //删除所有双空格(之前的替换可能增加了一些)
+        // 删除所有双空格(之前的替换可能增加了一些)
         // 这是“盲”替换-如果它们存在就替换，如果它们不存在就不做任何事情
         while (input.contains("  ")) {
             input = input.replaceAll("  ", " ");

@@ -71,17 +71,17 @@ public class Database {
                     //插入表的首行即列名
                     String[] split = line.split("\t");
                     for (String s : split) {
-                        if (Util.hasText(s)) {
+                        if (Util.checkStringHasText(s)) {
                             columnNameList.add(s.trim());
                         }
                     }
                 } else {
                     //插入表的每行的值
                     List<String> valueList = new ArrayList<>();
-                    if (Util.hasText(line)) {
+                    if (Util.checkStringHasText(line)) {
                         String[] split = line.split("\t");
                         for (String s : split) {
-                            if (Util.hasText(s)) {
+                            if (Util.checkStringHasText(s)) {
                                 if ("null".equals(s)) {
                                     valueList.add("\t");
                                 } else {

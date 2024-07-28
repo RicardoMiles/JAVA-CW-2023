@@ -66,7 +66,7 @@ public class DBServer {
     */
     public String handleCommand(String command) {
         try {
-            if (!hasText(command)) {
+            if (!checkCommandHasText(command)) {
                 return "[ERROR]: No command entered";
             }
             List<String> parserList = Parser.setup(command);
@@ -111,14 +111,14 @@ public class DBServer {
                         case "DATABASE":
                             databaseName = parserList.get(2).toLowerCase();
                             createDatabase(databaseName);
-                            if (isReservedWords(databaseName)) {
+                            if (checkIsReservedWords(databaseName)) {
                                 throw new RuntimeException("Use invalid element names reserved SQL keywords)");
                             }
                             break;
                         case "TABLE":
                             //创建数据库表
                             tableName = parserList.get(2).toLowerCase();
-                            if (isReservedWords(tableName)) {
+                            if (checkIsReservedWords(tableName)) {
                                 throw new RuntimeException("Use invalid element names reserved SQL keywords)");
                             }
                             List<String> columnNameList = new ArrayList<>();
@@ -126,13 +126,13 @@ public class DBServer {
                             for (int i = 3; i < parserList.size(); i++) {
                                 String parser = parserList.get(i);
                                 if (!Parser.SPECIAL_CHARACTERS.contains(parser)) {
-                                    if (isReservedWords(tableName)) {
+                                    if (checkIsReservedWords(tableName)) {
                                         throw new RuntimeException("Use invalid element names reserved SQL keywords)");
                                     }
                                     columnNameList.add(parser);
                                 }
                             }
-                            createTable(tableName, columnNameList);
+                            createNewTable(tableName, columnNameList);
                             break;
                         default:
                             throw new RuntimeException("sql syntax error");
@@ -143,7 +143,7 @@ public class DBServer {
                         throw new RuntimeException("GET command requires key");
                     }
                     databaseName = parserList.get(1).toLowerCase();
-                    use(databaseName);
+                    useDatabase(databaseName);
                     break;
                 case "INSERT":
                     if (parserList.size() < 4 || !"into".equalsIgnoreCase(parserList.get(1)) || !"values".equalsIgnoreCase(parserList.get(3))) {
@@ -157,7 +157,7 @@ public class DBServer {
                             valueList.add(parser);
                         }
                     }
-                    insert(tableName, valueList);
+                    insertIntoTable(tableName, valueList);
                     break;
                 case "SELECT":
 
@@ -175,7 +175,7 @@ public class DBServer {
                         }
                     }
 
-                    if (!Util.hasText(tableName)) {
+                    if (!Util.checkStringHasText(tableName)) {
                         throw new RuntimeException("SELECT command requires key and value");
                     }
 
@@ -195,8 +195,8 @@ public class DBServer {
                     conditionsMap = getConditionsMap(4, parserList);
 
                     StringBuilder sb = new StringBuilder();
-                    String select = select(tableName, attributeList, conditionsMap);
-                    if (!hasText(select)) {
+                    String select = selectFromTable(tableName, attributeList, conditionsMap);
+                    if (!checkCommandHasText(select)) {
                         break;
                     } else {
                         sb.append("[OK]");
@@ -220,7 +220,7 @@ public class DBServer {
                         stringBuilder.append("\n");
                         for (int i = 0; i < rowList.size(); i++) {
                             Row row = rowList.get(i);
-                            List<String> rowValueList = row.getValueList();
+                            List<String> rowValueList = row.getValueListFromRow();
                             for (String value : rowValueList) {
                                 stringBuilder.append(value).append("\t");
                             }
@@ -237,7 +237,7 @@ public class DBServer {
 
                     tableName = parserList.get(2);
                     conditionsMap = getConditionsMap(3, parserList);
-                    delete(tableName, conditionsMap);
+                    deleteFromTable(tableName, conditionsMap);
                     break;
                 case "UPDATE":
                     if (parserList.size() < 3 || !"SET".equalsIgnoreCase(parserList.get(2))) {
@@ -267,7 +267,7 @@ public class DBServer {
                     }
 
                     conditionsMap = getConditionsMap(4, parserList);
-                    update(tableName, attributesList, conditionsMap);
+                    updateTable(tableName, attributesList, conditionsMap);
                     break;
                 case "ALTER":
                     if (parserList.size() < 5 || !"table".equalsIgnoreCase(parserList.get(1))) {
@@ -276,7 +276,7 @@ public class DBServer {
                     tableName = parserList.get(2);
                     String actionType = parserList.get(3);
                     String attribute = parserList.get(4);
-                    alter(tableName, actionType, attribute);
+                    alterTableStructure(tableName, actionType, attribute);
                     break;
                 default:
                     throw new RuntimeException("Unknown command");
@@ -339,7 +339,7 @@ public class DBServer {
 
         List<Row> rowList = new ArrayList<>();
 
-        List<Row> firstTableRowList = selectRowList(firstTableName, new HashMap<>());
+        List<Row> firstTableRowList = selectRowListFromTable(firstTableName, new HashMap<>());
         if (firstTableRowList != null && !firstTableRowList.isEmpty()) {
             int firstTableAttributeIndex = -1;
             for (int i = 0; i < firstTableColumnNameList.size(); i++) {
@@ -350,14 +350,14 @@ public class DBServer {
                 }
             }
             for (Row firstTableRow : firstTableRowList) {
-                String firstTableRowValue = firstTableRow.getValue(firstTableAttributeIndex);
+                String firstTableRowValue = firstTableRow.getRowValue(firstTableAttributeIndex);
                 Map<String, List<String>> conditionsMap = new HashMap<>();
                 List<String> strings = new ArrayList<>();
                 strings.add(secondTableAttribute);
                 strings.add("==");
                 strings.add(firstTableRowValue);
                 conditionsMap.put(secondTableAttribute, strings);
-                List<Row> secondTableRowList = selectRowList(secondTableName, conditionsMap);
+                List<Row> secondTableRowList = selectRowListFromTable(secondTableName, conditionsMap);
                 if (secondTableRowList != null && !secondTableRowList.isEmpty()) {
                     Row secondTableRow = secondTableRowList.get(0);
                     if (rowList.isEmpty()) {
@@ -385,14 +385,14 @@ public class DBServer {
                     for (int i = 0; i < firstTableColumnNameList.size(); i++) {
                         String columnName = firstTableColumnNameList.get(i);
                         if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(firstTableAttribute)) {
-                            valueList.add(firstTableRow.getValue(i));
+                            valueList.add(firstTableRow.getRowValue(i));
                         }
                     }
 
                     for (int i = 0; i < secondTableColumnNameList.size(); i++) {
                         String columnName = secondTableColumnNameList.get(i);
                         if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(secondTableAttribute)) {
-                            valueList.add(secondTableRow.getValue(i));
+                            valueList.add(secondTableRow.getRowValue(i));
                         }
                     }
 
@@ -406,7 +406,7 @@ public class DBServer {
 
     }
 
-    private void use(String name) {
+    private void useDatabase(String name) {
         if (DATABASE_LIST.isEmpty()) {
             throw new RuntimeException("Database not created");
         } else {
@@ -423,7 +423,7 @@ public class DBServer {
         }
     }
 
-    public static boolean hasText(String str) {
+    public static boolean checkCommandHasText(String str) {
         return str != null && !str.isEmpty() && containsText(str);
     }
 
@@ -473,7 +473,7 @@ public class DBServer {
         }
         //创建数据库
         File databaseFile = Paths.get("databases" + File.separator + name).toAbsolutePath().toFile();
-        if (!Util.deleteFile(databaseFile)) {
+        if (!Util.recursivelyDeleteFile(databaseFile)) {
             throw new RuntimeException("Database deletion failed");
         }
 
@@ -483,7 +483,7 @@ public class DBServer {
         }
     }
 
-    private static void createTable(String name, List<String> columnNameList) {
+    private static void createNewTable(String name, List<String> columnNameList) {
         if (currentDatabase == null) {
             throw new RuntimeException("Database not selected prior");
         }
@@ -533,7 +533,7 @@ public class DBServer {
 
         tableList.add(table);
         currentDatabase.setTableList(tableList);
-        updateDatabaseList(currentDatabase);
+        updateDatabaseListInMemory(currentDatabase);
     }
 
     /**
@@ -564,13 +564,13 @@ public class DBServer {
                 File.separator + name + ".tab").toAbsolutePath().toFile();
 
         //删除表文件
-        if (!Util.deleteFile(table)) {
+        if (!Util.recursivelyDeleteFile(table)) {
             throw new RuntimeException("Table deletion failed");
         }
         //更新内存信息
         tableList.remove(currentTable);
         currentDatabase.setTableList(tableList);
-        updateDatabaseList(currentDatabase);
+        updateDatabaseListInMemory(currentDatabase);
     }
 
     /**
@@ -579,7 +579,7 @@ public class DBServer {
      * @param tableName 表名
      * @param valueList 插入的值
      */
-    private static void insert(String tableName, List<String> valueList) {
+    private static void insertIntoTable(String tableName, List<String> valueList) {
         if (currentDatabase == null) {
             throw new RuntimeException("Database not selected");
         }
@@ -626,7 +626,7 @@ public class DBServer {
         currentTable.setRowList(rowList);
         tableList.set(currentTableIndex, currentTable);
         currentDatabase.setTableList(tableList);
-        updateDatabaseList(currentDatabase);
+        updateDatabaseListInMemory(currentDatabase);
     }
 
     /**
@@ -637,7 +637,7 @@ public class DBServer {
      * @param conditionsMap 条件
      * @return 筛选后的数据
      */
-    private static String select(String tableName, List<String> attributeList, Map<String, List<String>> conditionsMap) {
+    private static String selectFromTable(String tableName, List<String> attributeList, Map<String, List<String>> conditionsMap) {
         if (currentDatabase == null) {
             throw new RuntimeException("Database not selected");
         }
@@ -661,7 +661,7 @@ public class DBServer {
         }
 
         List<String> columnNameList = table.getColumnNameList();
-        List<Row> conditionsRowList = selectRowList(tableName, conditionsMap);
+        List<Row> conditionsRowList = selectRowListFromTable(tableName, conditionsMap);
 
         StringBuilder sb = new StringBuilder();
         if (conditionsRowList != null && !conditionsRowList.isEmpty()) {
@@ -686,7 +686,7 @@ public class DBServer {
             for (int i = 0; i < conditionsRowList.size(); i++) {
                 Row row = conditionsRowList.get(i);
                 if (printColumn.isEmpty()) {
-                    List<String> valueList = row.getValueList();
+                    List<String> valueList = row.getValueListFromRow();
                     for (String value : valueList) {
                         if ("null".equals(value)) {
                             sb.append("\t").append("\t");
@@ -696,7 +696,7 @@ public class DBServer {
                     }
                 } else {
                     for (Integer index : printColumn) {
-                        String value = row.getValue(index);
+                        String value = row.getRowValue(index);
                         if ("null".equals(value)) {
                             sb.append("\t").append("\t");
                         } else {
@@ -719,7 +719,7 @@ public class DBServer {
      * @param conditionsMap 条件
      * @return 筛选后的数据
      */
-    private static List<Row> selectRowList(String tableName, Map<String, List<String>> conditionsMap) {
+    private static List<Row> selectRowListFromTable(String tableName, Map<String, List<String>> conditionsMap) {
         if (currentDatabase == null) {
             throw new RuntimeException("Database not selected");
         }
@@ -752,13 +752,13 @@ public class DBServer {
         List<Row> conditionsRowList = new ArrayList<>();
         for (Row row : rowList) {
             //逐行遍历
-            List<String> valueList = row.getValueList();
+            List<String> valueList = row.getValueListFromRow();
             if (!valueList.isEmpty()) {
                 StringBuilder stringBuilder = new StringBuilder();
                 for (String s : valueList) {
                     stringBuilder.append(s);
                 }
-                if (!hasText(stringBuilder.toString())) {
+                if (!checkCommandHasText(stringBuilder.toString())) {
                     break;
                 }
                 boolean isSelect = true;
@@ -768,11 +768,11 @@ public class DBServer {
                         List<String> conditions = conditionsMap.get(columnName);
                         if (conditions != null && !conditions.isEmpty()) {
                             //筛选条件含有此字段
-                            String value = row.getValue(i);
+                            String value = row.getRowValue(i);
                             String compare = conditions.get(1);
                             String valueStr = conditions.get(2);
                             try {
-                                if (!hasText(valueStr) || !hasText(value)) {
+                                if (!checkCommandHasText(valueStr) || !checkCommandHasText(value)) {
                                     isSelect = false;
                                     break;
                                 } else if (("==".equals(compare) || "=".equals(compare)) && !value.equals(valueStr)) {
@@ -815,7 +815,7 @@ public class DBServer {
      * @param tableName     表名
      * @param conditionsMap 筛选条件
      */
-    private void delete(String tableName, Map<String, List<String>> conditionsMap) {
+    private void deleteFromTable(String tableName, Map<String, List<String>> conditionsMap) {
         if (currentDatabase == null) {
             throw new RuntimeException("Database not selected");
         }
@@ -848,7 +848,7 @@ public class DBServer {
         boolean updateFile = false;
         for (int i = 0; i < rowList.size(); i++) {
             Row row = rowList.get(i);
-            List<String> valueList = row.getValueList();
+            List<String> valueList = row.getValueListFromRow();
             if (!valueList.isEmpty()) {
                 boolean isDelete = false;
                 if (conditionsMap.isEmpty()) {
@@ -860,11 +860,11 @@ public class DBServer {
                         List<String> conditions = conditionsMap.get(columnName);
                         if (conditions != null && !conditions.isEmpty()) {
                             //筛选条件含有此字段
-                            String value = row.getValue(j);
+                            String value = row.getRowValue(j);
                             String compare = conditions.get(1);
                             String valueStr = conditions.get(2);
                             try {
-                                if (!hasText(valueStr) || !hasText(value)) {
+                                if (!checkCommandHasText(valueStr) || !checkCommandHasText(value)) {
                                     break;
                                 } else if (("==".equals(compare) || "=".equals(compare)) && !value.equals(valueStr)) {
                                     break;
@@ -898,7 +898,7 @@ public class DBServer {
         if (updateFile) {
             File tableFile = Paths.get("databases" + File.separator + currentDatabase.getName() + File.separator + tableName + ".tab")
                     .toAbsolutePath().toFile();
-            writeFile(tableFile, false, table);
+            writeToFile(tableFile, false, table);
         }
     }
 
@@ -909,7 +909,7 @@ public class DBServer {
      * @param attributesList 属性名和属性值
      * @param conditionsMap  筛选条件
      */
-    private void update(String tableName, List<List<String>> attributesList, Map<String, List<String>> conditionsMap) {
+    private void updateTable(String tableName, List<List<String>> attributesList, Map<String, List<String>> conditionsMap) {
         if (currentDatabase == null) {
             throw new RuntimeException("Database not selected");
         }
@@ -942,7 +942,7 @@ public class DBServer {
         //是否需要更新文件
         boolean updateFile = false;
         for (Row row : rowList) {
-            List<String> valueList = row.getValueList();
+            List<String> valueList = row.getValueListFromRow();
             if (!valueList.isEmpty()) {
                 boolean isUpdate = false;
                 if (conditionsMap.isEmpty()) {
@@ -954,11 +954,11 @@ public class DBServer {
                         List<String> conditions = conditionsMap.get(columnName);
                         if (conditions != null && !conditions.isEmpty()) {
                             //筛选条件含有此字段
-                            String value = row.getValue(j);
+                            String value = row.getRowValue(j);
                             String compare = conditions.get(1);
                             String valueStr = conditions.get(2);
                             try {
-                                if (!hasText(valueStr) || !hasText(value)) {
+                                if (!checkCommandHasText(valueStr) || !checkCommandHasText(value)) {
                                     break;
                                 } else if (("==".equals(compare) || "=".equals(compare)) && !value.equals(valueStr)) {
                                     break;
@@ -987,7 +987,7 @@ public class DBServer {
                         for (List<String> attributes : attributesList) {
                             String attributeName = attributes.get(0);
                             if (columnName.equals(attributeName)) {
-                                row.setValue(j, attributes.get(2));
+                                row.setRowValue(j, attributes.get(2));
                             }
                         }
                     }
@@ -1000,7 +1000,7 @@ public class DBServer {
         if (updateFile) {
             File tableFile = Paths.get("databases" + File.separator + currentDatabase.getName() + File.separator + tableName + ".tab")
                     .toAbsolutePath().toFile();
-            writeFile(tableFile, false, table);
+            writeToFile(tableFile, false, table);
         }
     }
 
@@ -1011,7 +1011,7 @@ public class DBServer {
      * @param actionType 命令烈性
      * @param attribute  属性
      */
-    private void alter(String tableName, String actionType, String attribute) {
+    private void alterTableStructure(String tableName, String actionType, String attribute) {
         if (currentDatabase == null) {
             throw new RuntimeException("Database not selected");
         }
@@ -1031,7 +1031,7 @@ public class DBServer {
             List<Row> rowList = table.getRowList();
             if (!rowList.isEmpty()) {
                 for (Row row : rowList) {
-                    List<String> valueList = row.getValueList();
+                    List<String> valueList = row.getValueListFromRow();
                     valueList.add("null");
                 }
             }
@@ -1052,7 +1052,7 @@ public class DBServer {
             columnNameList.remove(attributeIndex);
             List<Row> rowList = table.getRowList();
             for (Row row : rowList) {
-                List<String> valueList = row.getValueList();
+                List<String> valueList = row.getValueListFromRow();
                 valueList.remove(attributeIndex);
             }
 
@@ -1062,7 +1062,7 @@ public class DBServer {
         currentDatabase.setTableList(tableName, table);
         File tableFile = Paths.get("databases" + File.separator + currentDatabase.getName() + File.separator + tableName + ".tab")
                 .toAbsolutePath().toFile();
-        writeFile(tableFile, false, table);
+        writeToFile(tableFile, false, table);
     }
 
     /**
@@ -1091,7 +1091,7 @@ public class DBServer {
      * @param append 是否拼接写
      * @param table  表
      */
-    private static void writeFile(File file, Boolean append, Table table) {
+    private static void writeToFile(File file, Boolean append, Table table) {
         try (FileWriter fw = new FileWriter(file, append)) {
             List<String> columnNameList = table.getColumnNameList();
             StringBuilder sb = new StringBuilder();
@@ -1103,7 +1103,7 @@ public class DBServer {
             List<Row> rowList = table.getRowList();
             if (!rowList.isEmpty()) {
                 for (Row row : rowList) {
-                    List<String> valueList = row.getValueList();
+                    List<String> valueList = row.getValueListFromRow();
                     if (!valueList.isEmpty()) {
 //                        fw.write("\n");
 //                    } else {
@@ -1148,7 +1148,7 @@ public class DBServer {
             for (int i = whereIndex; i < parserList.size(); i++) {
                 String parser = parserList.get(i);
                 if (!Parser.SPECIAL_CHARACTERS.contains(parser) && !"and".equalsIgnoreCase(parser)) {
-                    if (!hasText(key)) {
+                    if (!checkCommandHasText(key)) {
                         key = parser;
                     }
                     conditions.add(parser);
@@ -1171,7 +1171,7 @@ public class DBServer {
      *
      * @param database 数据库
      */
-    private static void updateDatabaseList(Database database) {
+    private static void updateDatabaseListInMemory(Database database) {
         for (int i = 0; i < DATABASE_LIST.size(); i++) {
             Database db = DATABASE_LIST.get(i);
             String name = db.getName();
@@ -1182,8 +1182,8 @@ public class DBServer {
         }
     }
 
-    private static boolean isReservedWords(String word) {
-        if (!hasText(word)) {
+    private static boolean checkIsReservedWords(String word) {
+        if (!checkCommandHasText(word)) {
             return false;
         }
         for (String reservedWord : RESERVED_WORD_LIST) {
