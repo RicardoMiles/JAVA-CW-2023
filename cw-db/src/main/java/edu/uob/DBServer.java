@@ -54,7 +54,7 @@ public class DBServer {
             }
 
         } catch(IOException ioe) {
-            System.out.println("Can't seem to create database storage folder " + storageFolderPath);
+            System.out.println("[ERROR] Failure in IO stream create database storage folder " + storageFolderPath);
         }
     }
 

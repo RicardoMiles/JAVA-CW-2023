@@ -7,7 +7,7 @@ import java.util.List;
 
 public class Parser {
 
-    // String query = "  INSERT  INTO  people   VALUES(  'Simon Lock'  ,35, 'simon@bristol.ac.uk' , 1.8  ) ; ";
+    // Query Example - "  INSERT  INTO  people   VALUES(  'Simon Lock'  ,35, 'simon@bristol.ac.uk' , 1.8  ) ; ";
     final static List<String> SPECIAL_CHARACTERS = Arrays.asList("(", ")", ",", ";");
 
     public static List<String> setup(String query) {
@@ -20,34 +20,31 @@ public class Parser {
         String[] fragments = query.split("'");
         for (int i = 0; i < fragments.length; i++) {
             // Every odd fragment is a string literal, so just append it without any alterations
-            //每个奇数片段都是字符串字面值，因此只需追加它而不做任何更改
+            // 每个奇数片段都是字符串字面值，因此只需追加它而不做任何更改
             if (i % 2 != 0) {
                 tokens.add("'" + fragments[i] + "'");
             }
             // If it's not a string literal, it must be query characters (which need further processing)
-            //如果不是字符串字面值，则必须是查询字符(需要进一步处理)。
+            // 如果不是字符串字面值，则必须是查询字符(需要进一步处理)。
             else {
-                // Tokenise the fragments into an array of strings
-                //将这些片段标记为字符串数组
+                // Tokenize the fragments into an array of strings
+                // 将这些片段标记为字符串数组
                 String[] nextBatchOfTokens = tokenise(fragments[i]);
                 // Then add these to the "result" array list (needs a bit of conversion)
-                //然后将这些添加到“结果”数组列表中(需要一些转换)
+                // 然后将这些添加到“结果”数组列表中(需要一些转换)
                 tokens.addAll(Arrays.asList(nextBatchOfTokens));
             }
         }
         // Finally, loop through the result array list, printing out each token a line at a time
-        //最后，循环遍历结果数组列表，每次输出一行标记
-//        for (String token : tokens) {
-//            System.out.println(token);
-//        }
+        // 最后，循环遍历结果数组列表，每次输出一行标记
         return tokens;
     }
 
     private static String[] tokenise(String input) {
         // Add in some extra padding spaces around the "special characters"
         // so we can be sure that they are separated by AT LEAST one space (possibly more)
-        //在“特殊字符”周围添加一些额外的填充空间
-        //所以我们可以确定它们之间至少有一个空格(可能更多)
+        // 在“特殊字符”周围添加一些额外的填充空间
+        // 所以我们可以确定它们之间至少有一个空格(可能更多)
         for (String specialCharacter : SPECIAL_CHARACTERS) {
             input = input.replace(specialCharacter, " " + specialCharacter + " ");
         }
