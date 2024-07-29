@@ -14,7 +14,11 @@ public class GameState {
     private HashMap<String, HashSet<GameAction>> currGameActions;
     private HashMap<String, Player> playersList;
 
-
+    /**
+     * Constructor to initialize the GameState with a starting location.
+     *
+     * @param startingLocation The default location where the game begins for every player.
+     */
     public GameState(String startingLocation){
         this.currGameMap = new HashMap<String,Location>();
         this.startingLocation = startingLocation;
@@ -22,14 +26,29 @@ public class GameState {
         this.playersList = new HashMap<String,Player>();
     }
 
+    /**
+     * Loads the game map with the provided locations.
+     *
+     * @param gameMap A HashMap containing the game's locations.
+     */
     public void loadGameMap(HashMap<String,Location> gameMap){
         this.currGameMap = gameMap;
     }
 
+    /**
+     * Loads the game actions with the provided action rules.
+     *
+     * @param gameActionRules A HashMap containing sets of GameActions.
+     */
     public void loadGameActions(HashMap<String, HashSet<GameAction>> gameActionRules){
         this.currGameActions = gameActionRules;
     }
 
+    /**
+     * Loads a player into the game, setting their starting location.
+     *
+     * @param playerName The name of the player to be added.
+     */
     public void loadPlayer(String playerName) {
         if (!playersList.containsKey(playerName)) {
             Player newPlayer = new Player(playerName, "User controlled player");
@@ -44,10 +63,22 @@ public class GameState {
         }
     }
 
+    /**
+     * Finds a player by their String attribute name.
+     *
+     * @param playerName The name of the player to find.
+     * @return The Player object if found, otherwise null.
+     */
     public Player findPlayerByName(String playerName) {
         return playersList.get(playerName);
     }
 
+    /**
+     * Retrieves the health of a player by their name.
+     *
+     * @param playerName The name of the player.
+     * @return The health of the player if found, otherwise a default error code.
+     */
     public int getPlayerHealth(String playerName) {
         Player player = playersList.get(playerName);
         if (player != null) {
@@ -57,6 +88,12 @@ public class GameState {
         }
     }
 
+    /**
+     * Generates a description of the player's current location.
+     *
+     * @param playerName The name of the player.
+     * @return A string describing the current location and its contents.
+     */
     public String lookCMD(String playerName) {
         Location location = locatePlayer(playerName);
         if (location != null) {
@@ -85,7 +122,13 @@ public class GameState {
         return "Login location not found for player: " + playerName;
     }
 
-
+    /**
+     * Checks if the target location is accessible from the player's current location.
+     *
+     * @param playerName The name of the player.
+     * @param targetLocation The name of the target location.
+     * @return True if the location is accessible, otherwise false.
+     */
     public boolean checkLocationAccessiblity(String playerName, String targetLocation) {
         for (Location location : currGameMap.values()) {
             for (Character player : location.getCharacters()) {
@@ -97,6 +140,11 @@ public class GameState {
         return false;
     }
 
+    /**
+     * Retrieves the current game map.
+     *
+     * @return A HashMap containing the game's locations.
+     */
     public HashMap<String, Location> getCurrGameMap() {
         return currGameMap;
     }
@@ -207,6 +255,12 @@ public class GameState {
         }
     }
 
+    /**
+     * Locates the player's current location.
+     *
+     * @param playerName The name of the player.
+     * @return The Location object where the player is currently located.
+     */
     public Location locatePlayer(String playerName) {
         for (Location location : currGameMap.values()) {
             for (Character player : location.getCharacters()) {
@@ -218,6 +272,11 @@ public class GameState {
         return null;
     }
 
+    /**
+     * Retrieves all trigger phrases from the game actions.
+     *
+     * @return A set of all trigger phrases.
+     */
     public Set<String> getAllTriggerPhrases() {
         Set<String> allTriggerPhrases = new HashSet<>();
         for (HashSet<GameAction> actions : currGameActions.values()) {
@@ -228,10 +287,23 @@ public class GameState {
         return allTriggerPhrases;
     }
 
+    /**
+     * Retrieves all actions associated with a specific trigger.
+     *
+     * @param trigger The trigger phrase.
+     * @return A set of GameActions linked to the trigger.
+     */
     public Set<GameAction> getActionsForTrigger(String trigger) {
         return currGameActions.getOrDefault(trigger, new HashSet<>());
     }
 
+    /**
+     * Checks if the player and their location contain all specified entities.
+     *
+     * @param playerName The name of the player.
+     * @param entities A set of entity names to check.
+     * @return True if all entities are present, otherwise false.
+     */
     public boolean checkPlayerAndLocationHaveAllEntities(String playerName, Set<String> entities) {
         Player player = playersList.get(playerName);
         if (player == null) {
@@ -255,6 +327,12 @@ public class GameState {
         return combinedEntities.containsAll(entities);
     }
 
+    /**
+     * Performs the specified action by loaded .XML file.
+     *
+     * @param action The GameAction to perform.
+     * @param playerName The name of the player performing the action.(due to multiplayer feature)
+     */
     public void performActionFromFiles(GameAction action, String playerName) {
         Set<String> consumedEntities = action.getConsumedEntities();
         Set<String> producedEntities = action.getProducedEntities();
