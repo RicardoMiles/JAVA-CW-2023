@@ -211,7 +211,7 @@ public class DBServer {
                     List<String> tableAttributeList = new ArrayList<>();
                     tableAttributeList.add(parserList.get(5));
                     tableAttributeList.add(parserList.get(7));
-                    List<Row> rowList = join(tableNameList, tableAttributeList);
+                    List<Row> rowList = executeJoinQuery(tableNameList, tableAttributeList);
                     if (rowList.isEmpty()) {
                         break;
                     } else {
@@ -287,123 +287,154 @@ public class DBServer {
         }
     }
 
-    private List<Row> join(List<String> tableNameList, List<String> tableAttributeList) {
-        if (currentDatabase == null) {
-            throw new RuntimeException("Not use database");
-        }
+    /**
+     * Execute Join Query, make two tables based on specified attributes.
+     *
+     * @param tableNameList List of table names to join.
+     * @param tableAttributeList List of attributes from each table to join on.
+     * @return List of joined rows.
+     * @throws RuntimeException if the database is not selected, a table doesn't exist, or an attribute doesn't exist.
+     *
+     * The join operation includes the following details:
+     * - Discards the original table IDs.
+     * - Discards matching columns between the two tables, retaining only one copy in the output.
+     * - Creates a new unique ID for each generated row.
+     * - Prefixes attribute names with their source table's name.
+     */
+    private List<Row> executeJoinQuery(List<String> tableNameList, List<String> tableAttributeList) {
+        validateDatabase();
+        validateTablesAndAttributes(tableNameList, tableAttributeList);
+        return joinAttributesToTables(tableNameList, tableAttributeList);
+    }
 
+    private static void validateDatabase() {
+        if (currentDatabase == null) {
+            throw new RuntimeException("Database not selected.");
+        }
+    }
+
+    private void validateTablesAndAttributes(List<String> tableNameList, List<String> tableAttributeList) {
         List<Table> tableList = currentDatabase.getTableList();
         for (int i = 0; i < tableNameList.size(); i++) {
             String tableName = tableNameList.get(i);
-            Table table = null;
-            for (Table t : tableList) {
-                if (tableName.equalsIgnoreCase(t.getName())) {
-                    table = t;
-                    break;
-                }
-            }
+            Table table = findTableByName(tableList, tableName);
             if (table == null) {
                 throw new RuntimeException("Table '" + currentDatabase.getName() + "." + tableName + "' doesn't exist");
             } else {
                 String tableAttribute = tableAttributeList.get(i);
-                List<String> columnNameList = table.getColumnNameList();
-                boolean hasAttribute = false;
-                for (String columnName : columnNameList) {
-                    if (columnName.equalsIgnoreCase(tableAttribute)) {
-                        hasAttribute = true;
-                        break;
-                    }
-                }
-                if (!hasAttribute) {
-                    throw new RuntimeException("Unknown column '" + tableAttribute + "' in '" + currentDatabase.getName() + "." + tableName + "'");
-                }
+                validateAttributeExists(table, tableAttribute);
             }
         }
+    }
 
-        /*
-            5. 关于JOIN语句的细节：
-            对于JOIN操作：丢弃原始表中的ID。
-            丢弃两张表相互匹配的列，在输出到客户端的列中仅保留一份。
-            为生成的每行表创建一个新的唯一ID。
-            属性名称前缀为其来源表的名称。
-         */
+    private Table findTableByName(List<Table> tableList, String tableName) {
+        for (Table t : tableList) {
+            if (tableName.equalsIgnoreCase(t.getName())) {
+                return t;
+            }
+        }
+        return null;
+    }
 
+    private void validateAttributeExists(Table table, String attribute) {
+        List<String> columnNameList = table.getColumnNameList();
+        for (String columnName : columnNameList) {
+            if (columnName.equalsIgnoreCase(attribute)) {
+                return;
+            }
+        }
+        throw new RuntimeException("Unknown column '" + attribute + "' in '" + currentDatabase.getName() + "." + table.getName() + "'");
+    }
+
+    private List<Row> joinAttributesToTables(List<String> tableNameList, List<String> tableAttributeList) {
         String firstTableName = tableNameList.get(0);
-        Table firstTable = currentDatabase.getTable(firstTableName);
-        List<String> firstTableColumnNameList = firstTable.getColumnNameList();
         String secondTableName = tableNameList.get(1);
+        Table firstTable = currentDatabase.getTable(firstTableName);
         Table secondTable = currentDatabase.getTable(secondTableName);
-        List<String> secondTableColumnNameList = secondTable.getColumnNameList();
+
         String firstTableAttribute = tableAttributeList.get(0);
         String secondTableAttribute = tableAttributeList.get(1);
 
         List<Row> rowList = new ArrayList<>();
-
         List<Row> firstTableRowList = selectRowListFromTable(firstTableName, new HashMap<>());
+
         if (firstTableRowList != null && !firstTableRowList.isEmpty()) {
-            int firstTableAttributeIndex = -1;
-            for (int i = 0; i < firstTableColumnNameList.size(); i++) {
-                String columnName = firstTableColumnNameList.get(i);
-                if (columnName.equalsIgnoreCase(firstTableAttribute)) {
-                    firstTableAttributeIndex = i;
-                    break;
-                }
-            }
+            int firstTableAttributeIndex = getColumnIndex(firstTable.getColumnNameList(), firstTableAttribute);
+
             for (Row firstTableRow : firstTableRowList) {
                 String firstTableRowValue = firstTableRow.getRowValue(firstTableAttributeIndex);
-                Map<String, List<String>> conditionsMap = new HashMap<>();
-                List<String> strings = new ArrayList<>();
-                strings.add(secondTableAttribute);
-                strings.add("==");
-                strings.add(firstTableRowValue);
-                conditionsMap.put(secondTableAttribute, strings);
+                Map<String, List<String>> conditionsMap = createConditionsMap(secondTableAttribute, firstTableRowValue);
                 List<Row> secondTableRowList = selectRowListFromTable(secondTableName, conditionsMap);
+
                 if (secondTableRowList != null && !secondTableRowList.isEmpty()) {
-                    Row secondTableRow = secondTableRowList.get(0);
                     if (rowList.isEmpty()) {
-                        //插入表头
-                        List<String> valueList = new ArrayList<>();
-                        valueList.add("id");
-                        for (String columnName : firstTableColumnNameList) {
-                            if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(firstTableAttribute)) {
-                                valueList.add(firstTableName + "." + columnName);
-                            }
-                        }
-
-                        for (String columnName : secondTableColumnNameList) {
-                            if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(secondTableAttribute)) {
-                                valueList.add(secondTableName + "." + columnName);
-                            }
-                        }
-
-                        rowList.add(new Row(valueList));
+                        rowList.add(createHeaderRow(firstTable, secondTable, firstTableAttribute, secondTableAttribute));
                     }
-
-                    List<String> valueList = new ArrayList<>();
-                    //插入新表id
-                    valueList.add(String.valueOf(rowList.size()));
-                    for (int i = 0; i < firstTableColumnNameList.size(); i++) {
-                        String columnName = firstTableColumnNameList.get(i);
-                        if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(firstTableAttribute)) {
-                            valueList.add(firstTableRow.getRowValue(i));
-                        }
-                    }
-
-                    for (int i = 0; i < secondTableColumnNameList.size(); i++) {
-                        String columnName = secondTableColumnNameList.get(i);
-                        if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(secondTableAttribute)) {
-                            valueList.add(secondTableRow.getRowValue(i));
-                        }
-                    }
-
-                    rowList.add(new Row(valueList));
-
+                    rowList.add(createJoinedRow(firstTableRow, secondTableRowList.get(0), firstTable, secondTable, firstTableAttribute, secondTableAttribute, rowList.size()));
                 }
             }
         }
 
         return rowList;
+    }
 
+    private int getColumnIndex(List<String> columnNames, String attributeName) {
+        for (int i = 0; i < columnNames.size(); i++) {
+            if (columnNames.get(i).equalsIgnoreCase(attributeName)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private Map<String, List<String>> createConditionsMap(String attributeName, String value) {
+        Map<String, List<String>> conditionsMap = new HashMap<>();
+        List<String> condition = new ArrayList<>();
+        condition.add(attributeName);
+        condition.add("==");
+        condition.add(value);
+        conditionsMap.put(attributeName, condition);
+        return conditionsMap;
+    }
+
+    private Row createHeaderRow(Table firstTable, Table secondTable, String firstTableAttribute, String secondTableAttribute) {
+        List<String> valueList = new ArrayList<>();
+        valueList.add("id");
+
+        for (String columnName : firstTable.getColumnNameList()) {
+            if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(firstTableAttribute)) {
+                valueList.add(firstTable.getName() + "." + columnName);
+            }
+        }
+
+        for (String columnName : secondTable.getColumnNameList()) {
+            if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(secondTableAttribute)) {
+                valueList.add(secondTable.getName() + "." + columnName);
+            }
+        }
+
+        return new Row(valueList);
+    }
+
+    private Row createJoinedRow(Row firstTableRow, Row secondTableRow, Table firstTable, Table secondTable, String firstTableAttribute, String secondTableAttribute, int rowIndex) {
+        List<String> valueList = new ArrayList<>();
+        valueList.add(String.valueOf(rowIndex));
+
+        for (int i = 0; i < firstTable.getColumnNameList().size(); i++) {
+            String columnName = firstTable.getColumnNameList().get(i);
+            if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(firstTableAttribute)) {
+                valueList.add(firstTableRow.getRowValue(i));
+            }
+        }
+
+        for (int i = 0; i < secondTable.getColumnNameList().size(); i++) {
+            String columnName = secondTable.getColumnNameList().get(i);
+            if (!"id".equalsIgnoreCase(columnName) && !columnName.equalsIgnoreCase(secondTableAttribute)) {
+                valueList.add(secondTableRow.getRowValue(i));
+            }
+        }
+
+        return new Row(valueList);
     }
 
     private void useDatabase(String name) {
@@ -484,9 +515,7 @@ public class DBServer {
     }
 
     private static void createNewTable(String name, List<String> columnNameList) {
-        if (currentDatabase == null) {
-            throw new RuntimeException("Database not selected prior");
-        }
+        validateDatabase();
         List<Table> tableList = currentDatabase.getTableList();
         if (!tableList.isEmpty()) {
             for (Table table : tableList) {
@@ -542,9 +571,7 @@ public class DBServer {
      * @param name 表名称
      */
     private static void dropTable(String name) {
-        if (currentDatabase == null) {
-            throw new RuntimeException("Database not selected prior");
-        }
+        validateDatabase();
         Table currentTable = null;
         List<Table> tableList = currentDatabase.getTableList();
         if (!tableList.isEmpty()) {
@@ -580,9 +607,7 @@ public class DBServer {
      * @param valueList 插入的值
      */
     private static void insertIntoTable(String tableName, List<String> valueList) {
-        if (currentDatabase == null) {
-            throw new RuntimeException("Database not selected");
-        }
+        validateDatabase();
         List<Table> tableList = currentDatabase.getTableList();
         if (tableList == null || tableList.isEmpty()) {
             throw new RuntimeException("Database not found");
@@ -638,9 +663,7 @@ public class DBServer {
      * @return 筛选后的数据
      */
     private static String selectFromTable(String tableName, List<String> attributeList, Map<String, List<String>> conditionsMap) {
-        if (currentDatabase == null) {
-            throw new RuntimeException("Database not selected");
-        }
+        validateDatabase();
         Table table = currentDatabase.getTable(tableName);
         if (table == null) {
             File file = Paths.get("databases" + File.separator + currentDatabase.getName() + File.separator + tableName + ".tab").toAbsolutePath().toFile();
@@ -665,7 +688,7 @@ public class DBServer {
 
         StringBuilder sb = new StringBuilder();
         if (conditionsRowList != null && !conditionsRowList.isEmpty()) {
-            //筛选结束打印剩余行
+            // 筛选结束打印剩余行
             List<Integer> printColumn = new ArrayList<>();
             for (int i = 0; i < columnNameList.size(); i++) {
                 String columnName = columnNameList.get(i);
@@ -720,9 +743,7 @@ public class DBServer {
      * @return 筛选后的数据
      */
     private static List<Row> selectRowListFromTable(String tableName, Map<String, List<String>> conditionsMap) {
-        if (currentDatabase == null) {
-            throw new RuntimeException("Database not selected");
-        }
+        validateDatabase();
         Table table = currentDatabase.getTable(tableName);
         if (table == null) {
             throw new RuntimeException("Database not found");
@@ -816,9 +837,7 @@ public class DBServer {
      * @param conditionsMap 筛选条件
      */
     private void deleteFromTable(String tableName, Map<String, List<String>> conditionsMap) {
-        if (currentDatabase == null) {
-            throw new RuntimeException("Database not selected");
-        }
+        validateDatabase();
         Table table = currentDatabase.getTable(tableName);
         if (table == null) {
             throw new RuntimeException("Database not found");
@@ -910,9 +929,7 @@ public class DBServer {
      * @param conditionsMap  筛选条件
      */
     private void updateTable(String tableName, List<List<String>> attributesList, Map<String, List<String>> conditionsMap) {
-        if (currentDatabase == null) {
-            throw new RuntimeException("Database not selected");
-        }
+        validateDatabase();
         Table table = currentDatabase.getTable(tableName);
         if (table == null) {
             throw new RuntimeException("Database not found");
@@ -1012,9 +1029,7 @@ public class DBServer {
      * @param attribute  属性
      */
     private void alterTableStructure(String tableName, String actionType, String attribute) {
-        if (currentDatabase == null) {
-            throw new RuntimeException("Database not selected");
-        }
+        validateDatabase();
         Table table = currentDatabase.getTable(tableName);
         if (table == null) {
             throw new RuntimeException("Table not found queries on non-existent tables");
