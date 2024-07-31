@@ -566,9 +566,16 @@ public class DBServer {
     }
 
     /**
+     * Drop a table, removing its information from the database
      * 释放表，删除数据库表的信息
+     * Drops a table from the current database. This method performs the following steps:
+     * 1. Validates that a database is currently in use.
+     * 2. Searches for the table in the current database's table list.
+     * 3. If the table is not found, throws a RuntimeException.
+     * 4. Deletes the table file from the file system.
+     * 5. Updates the in-memory table list and database information.
      *
-     * @param name 表名称
+     * @param name 表名称 The name of the table to be dropped.
      */
     private static void dropTable(String name) {
         validateDatabase();
@@ -601,10 +608,18 @@ public class DBServer {
     }
 
     /**
-     * 插入命令
+     * Inserts a row of values into a specified table in the current database.
+     * This method performs the following steps:
+     * 1. Validates that a database is currently in use.
+     * 2. Searches for the specified table in the current database's table list.
+     * 3. If the table is not found, throws a RuntimeException.
+     * 4. Constructs a new row with an ID and the provided values.
+     * 5. Adds the new row to the table's row list.
+     * 6. Writes the updated table data to the table file.
+     * 7. Updates the in-memory table list and database information.
      *
-     * @param tableName 表名
-     * @param valueList 插入的值
+     * @param tableName The name of the table to insert the row into.
+     * @param valueList The list of values to insert into the table.
      */
     private static void insertIntoTable(String tableName, List<String> valueList) {
         validateDatabase();
@@ -655,12 +670,19 @@ public class DBServer {
     }
 
     /**
-     * 查找命令
+     * Selects data from a specified table in the current database based on given attributes and conditions.
+     * This method performs the following steps:
+     * 1. Validates that a database is currently in use.
+     * 2. Searches for the specified table in the current database. If the table file exists but is not loaded, loads the table file.
+     * 3. If the table is not found, throws a RuntimeException.
+     * 4. Retrieves the column names from the table.
+     * 5. Selects rows from the table that match the given conditions.
+     * 6. Constructs a result string including the column names and the selected rows' data.
      *
-     * @param tableName     表名
-     * @param attributeList 属性名
-     * @param conditionsMap 条件
-     * @return 筛选后的数据
+     * @param tableName The name of the table to select data from.
+     * @param attributeList The list of column names to select. If empty, all columns are selected.
+     * @param conditionsMap The map of conditions for filtering rows. The key is the column name, and the value is a list containing the operator and value.
+     * @return A string representation of the selected data.
      */
     private static String selectFromTable(String tableName, List<String> attributeList, Map<String, List<String>> conditionsMap) {
         validateDatabase();
@@ -736,11 +758,17 @@ public class DBServer {
     }
 
     /**
-     * 查找命令
+     * Selects rows from a specified table in the current database based on given conditions.
+     * This method performs the following steps:
+     * 1. Validates that a database is currently in use.
+     * 2. Retrieves the specified table from the current database.
+     * 3. Validates that the columns specified in the conditions exist in the table.
+     * 4. Iterates through the table's rows, selecting those that match the given conditions.
+     * 5. Returns a list of rows that match the conditions.
      *
-     * @param tableName     表名
-     * @param conditionsMap 条件
-     * @return 筛选后的数据
+     * @param tableName The name of the table to select rows from.
+     * @param conditionsMap The map of conditions for filtering rows. The key is the column name, and the value is a list containing the operator and value.
+     * @return A list of rows that match the conditions.
      */
     private static List<Row> selectRowListFromTable(String tableName, Map<String, List<String>> conditionsMap) {
         validateDatabase();
@@ -828,10 +856,16 @@ public class DBServer {
     }
 
     /**
-     * 删除命令
+     * Deletes rows from a specified table in the current database based on given conditions.
+     * This method performs the following steps:
+     * 1. Validates that a database is currently in use.
+     * 2. Retrieves the specified table from the current database.
+     * 3. Validates that the columns specified in the conditions exist in the table.
+     * 4. Iterates through the table's rows, marking those that match the given conditions for deletion.
+     * 5. Updates the in-memory table list and writes the updated table data to the file system.
      *
-     * @param tableName     表名
-     * @param conditionsMap 筛选条件
+     * @param tableName The name of the table to delete rows from.
+     * @param conditionsMap The map of conditions for filtering rows. The key is the column name, and the value is a list containing the operator and value.
      */
     private void deleteFromTable(String tableName, Map<String, List<String>> conditionsMap) {
         validateDatabase();
@@ -924,11 +958,17 @@ public class DBServer {
     }
 
     /**
-     * 更新命令
+     * Updates rows in a specified table in the current database based on given conditions and attribute updates.
+     * This method performs the following steps:
+     * 1. Validates that a database is currently in use.
+     * 2. Retrieves the specified table from the current database.
+     * 3. Validates that the columns specified in the conditions exist in the table.
+     * 4. Iterates through the table's rows, updating those that match the given conditions with the new attribute values.
+     * 5. Updates the in-memory table list and writes the updated table data to the file system.
      *
-     * @param tableName      表名
-     * @param attributesList 属性名和属性值
-     * @param conditionsMap  筛选条件
+     * @param tableName The name of the table to update rows in.
+     * @param attributesList The list of attributes to update, each containing the column name and the new value.
+     * @param conditionsMap The map of conditions for filtering rows. The key is the column name, and the value is a list containing the operator and value.
      */
     private void updateTable(String tableName, List<List<String>> attributesList, Map<String, List<String>> conditionsMap) {
         validateDatabase();
@@ -1021,11 +1061,17 @@ public class DBServer {
     }
 
     /**
-     * 修改表结构命令
+     * Modifies the structure of a specified table in the current database by adding or dropping a column.
+     * This method performs the following steps:
+     * 1. Validates that a database is currently in use.
+     * 2. Retrieves the specified table from the current database.
+     * 3. Depending on the action type ("ADD" or "DROP"), it either adds a new column with the given attribute name or drops the specified column.
+     * 4. Updates the column name list and the row data of the table.
+     * 5. Updates the in-memory table list and writes the updated table data to the file system.
      *
-     * @param tableName  表名称
-     * @param actionType 命令烈性
-     * @param attribute  属性
+     * @param tableName  The name of the table to modify.
+     * @param actionType The type of action to perform ("ADD" or "DROP").
+     * @param attribute  The name of the column to add or drop.
      */
     private void alterTableStructure(String tableName, String actionType, String attribute) {
         validateDatabase();
@@ -1080,11 +1126,12 @@ public class DBServer {
     }
 
     /**
+     * Write TableFile
      * 写入文件
      *
-     * @param file    文件
-     * @param append  是否拼接写
-     * @param rowList 行列表
+     * @param file    文件 FileName
+     * @param append  是否拼接写 Whether to append to the file
+     * @param rowList 行列表 the list of rows
      */
     private static void writeTableFile(File file, Boolean append, List<String> rowList) {
         try (FileWriter fw = new FileWriter(file, append)) {
@@ -1099,11 +1146,12 @@ public class DBServer {
     }
 
     /**
+     * Write to file
      * 写入文件
      *
-     * @param file   文件
-     * @param append 是否拼接写
-     * @param table  表
+     * @param file   文件 FileName
+     * @param append 是否拼接写 Whether to append to the file
+     * @param table  表 table
      */
     private static void writeToFile(File file, Boolean append, Table table) {
         try (FileWriter fw = new FileWriter(file, append)) {
@@ -1139,11 +1187,15 @@ public class DBServer {
     }
 
     /**
-     * 获取where条件后的map
+     * Extracts the conditions from the parsed command list starting from the specified index.
+     * This method performs the following steps:
+     * 1. Searches for the "WHERE" clause in the parsed command list starting from the given index.
+     * 2. If a "WHERE" clause is found, it extracts the conditions into a map where the key is the column name and the value is a list containing the operator and the value.
+     * 3. Returns the map of conditions.
      *
-     * @param startIndex 开始索引
-     * @param parserList 命令列表
-     * @return 条件map
+     * @param startIndex The index in the parsed command list to start searching for the "WHERE" clause.
+     * @param parserList The list of parsed command elements.
+     * @return A map containing the conditions extracted from the "WHERE" clause. The key is the column name, and the value is a list containing the operator and the value.
      */
     private static Map<String, List<String>> getConditionsMap(int startIndex, List<String> parserList) {
         int whereIndex = -1;
@@ -1181,9 +1233,10 @@ public class DBServer {
     }
 
     /**
+     * Update database information in memory
      * 更新数据库内存信息
      *
-     * @param database 数据库
+     * @param database 数据库 current database
      */
     private static void updateDatabaseListInMemory(Database database) {
         for (int i = 0; i < DATABASE_LIST.size(); i++) {

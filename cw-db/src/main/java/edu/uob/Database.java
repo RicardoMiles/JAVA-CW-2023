@@ -50,7 +50,19 @@ public class Database {
     }
 
     /**
+     * Add new table and files
      * 新增表及文件
+     * Adds a new table to the database by reading the table's data from a file.
+     * The method performs the following steps:
+     * 1. Checks if the file has a ".tab" extension. If not, the method returns without doing anything.
+     * 2. Extracts the table name from the file name (without the ".tab" extension).
+     * 3. Creates a new `Table` object with the extracted table name.
+     * 4. Initializes lists to store column names and rows.
+     * 5. Reads the file line by line:
+     *   - The first line (header) contains the column names, which are added to the `columnNameList`.
+     *   - Subsequent lines contain the data rows, which are added to the `rowList`.
+     * 6. Sets the column count, column names, and row data in the `Table` object.
+     * 7. Adds the `Table` object to the database's table list.
      *
      * @param tableFile 表的文件
      */
@@ -68,7 +80,8 @@ public class Database {
             List<Row> rowList = new ArrayList<>();
             while ((line = br.readLine()) != null) {
                 if (index == -1) {
-                    //插入表的首行即列名
+                    // 插入表的首行即列名
+                    // Extract the table name from the file name (without the .tab extension)
                     String[] split = line.split("\t");
                     for (String s : split) {
                         if (Util.checkStringHasText(s)) {
@@ -76,7 +89,8 @@ public class Database {
                         }
                     }
                 } else {
-                    //插入表的每行的值
+                    // 插入表的每行的值
+                    // Initialize the lists to store column names and rows
                     List<String> valueList = new ArrayList<>();
                     if (Util.checkStringHasText(line)) {
                         String[] split = line.split("\t");
