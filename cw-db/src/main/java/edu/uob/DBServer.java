@@ -744,10 +744,7 @@ public class DBServer {
      */
     private static List<Row> selectRowListFromTable(String tableName, Map<String, List<String>> conditionsMap) {
         validateDatabase();
-        Table table = currentDatabase.getTable(tableName);
-        if (table == null) {
-            throw new RuntimeException("Database not found");
-        }
+        Table table = getTableFromName(tableName);
 
         List<String> columnNameList = table.getColumnNameList();
         //查询不存在的属性时候，只读到WHERE并没有判断属性本身存在与否
@@ -838,10 +835,7 @@ public class DBServer {
      */
     private void deleteFromTable(String tableName, Map<String, List<String>> conditionsMap) {
         validateDatabase();
-        Table table = currentDatabase.getTable(tableName);
-        if (table == null) {
-            throw new RuntimeException("Database not found");
-        }
+        Table table = getTableFromName(tableName);
 
         List<String> columnNameList = table.getColumnNameList();
         //查询不存在的属性时候，只读到WHERE并没有判断属性本身存在与否
@@ -921,6 +915,14 @@ public class DBServer {
         }
     }
 
+    private static Table getTableFromName(String tableName){
+        Table table = currentDatabase.getTable(tableName);
+        if (table == null) {
+            throw new RuntimeException("Database not found");
+        }
+        return table;
+    }
+
     /**
      * 更新命令
      *
@@ -930,10 +932,7 @@ public class DBServer {
      */
     private void updateTable(String tableName, List<List<String>> attributesList, Map<String, List<String>> conditionsMap) {
         validateDatabase();
-        Table table = currentDatabase.getTable(tableName);
-        if (table == null) {
-            throw new RuntimeException("Database not found");
-        }
+        Table table = getTableFromName(tableName);
 
         List<String> columnNameList = table.getColumnNameList();
         //查询不存在的属性时候，只读到WHERE并没有判断属性本身存在与否
